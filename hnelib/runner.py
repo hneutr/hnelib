@@ -1,4 +1,6 @@
 import functools
+import pandas as pd
+import os
 
 from pathlib import Path
 import matplotlib.pyplot as plt
@@ -44,6 +46,9 @@ class Runner(object):
                 sub_items = Runner.recursive_flatten_collection(val)
                 flat_collection.update({f"{item}/{key}": subval for key, subval in sub_items.items()})
 
+        for key in flat_collection:
+            flat_collection[key]['full_name'] = key
+
         return flat_collection
 
     def get_aliases(self, collection): 
@@ -78,10 +83,8 @@ class Runner(object):
         candidates = {}
         for candidate in self.collection:
             *candidate_parents, candidate_stem = candidate.split('/')
-            print(candidate_stem)
 
             if candidate_stem == string_stem:
-                print('11')
                 # if we get a search string with 3 path segments
                 # ('/1/2/3/stem'), then we can reject candidates with fewer than
                 # 3 path segments ('/1/2/stem')
@@ -90,6 +93,7 @@ class Runner(object):
 
         # If we find only one "stem" match, that's our match
         if len(candidates) == 1:
+            match = list(candidates.keys())[0]
             return self.collection[list(candidates.keys())[0]]
 
         # if we have more than one "stem" match, try to use the pre-stem parts
@@ -126,11 +130,16 @@ class Runner(object):
 
     @property
     def figures_directory(self):
-        return self.directory.joinpath('figures')
+        path = self.directory.joinpath('figures')
+        path.mkdir(exist_ok=True, parents=True)
+        return path
 
     @property
     def dataframes_directory(self):
-        return self.directory.joinpath('dataframes')
+        path = self.directory.joinpath('dataframes')
+        path.mkdir(exist_ok=True, parents=True)
+        print('steve')
+        return path
 
     @property
     def tables_directory(self):
@@ -153,33 +162,34 @@ class Runner(object):
     def default_dataframe_formatter(df):
         return df.copy()
 
-    def run_all(self, items=[], **kwargs):
-        for item in items:
+    def run_all(self, **kwargs):
+        for item in self.collection:
             print(item)
-            self.run(item, **kwargs)
+            self.run(item, run_expansions=True, **kwargs)
 
     def run(
         self,
-        item_name,
+        item_name_queried,
         show=False,
         item_kwargs={},
         run_expansions=False,
         save_plot_kwargs={},
         save_dataframe_kwargs={},
     ):
-        item = self.get_item(item_name)
+        item = self.get_item(item_name_queried)
+        item_name = item['full_name']
         item_kwargs = {
             **item.get('kwargs', {}),
             **item_kwargs,
         }
 
-        to_run = plot.get('expander', self.default_expander)(item_name, item_kwargs)
+        to_run = item.get('expander', self.default_expander)(item_name, item_kwargs)
         if not run_expansions:
             to_run = to_run[:1]
 
         figures_path = self.directory.joinpath('figures')
 
-        for item_name, item_kwargs in to_run.items():
+        for item_name, item_kwargs in to_run:
             path = Path(*item.get('subdirs', [])).joinpath(item_name)
 
             result = item['do'](**item_kwargs)
