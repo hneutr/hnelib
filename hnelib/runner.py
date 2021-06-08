@@ -15,16 +15,20 @@ class Runner(object):
         """
         A collection is a dictionary of the form:
         {
+            'some_string': function,
+            ...
+            'some_string': {
+                'do': function,
+                'kwargs': {kwargs for function},
+                'no_plot': True if a matplotlib plot is not to be saved, False otherwise,
+                'subdirs': [list, of, subdirectories, to, preappend, to, name],
+                'expander': function to expand the name, # TODO: more on this
+                'alias': shortform_name_of_function,
+            },
             'directory': {
                 'subdirectory': {
-                    'function_to_run': {
-                        'do': _somefunction_,
-                        'kwargs': {kwargs for function},
-                        'no_plot': True if a matplotlib plot is not to be saved, False otherwise,
-                        'subdirs': [list, of, subdirectories],
-                        'expander': function to expand the name,
-                        'alias': shortform_name_of_function,
-                    }
+                    'some_string1': ...,
+                    'some_string2': ...,
                 }
             }
         }
@@ -40,22 +44,22 @@ class Runner(object):
     def recursive_flatten_collection(collection):
         flat_collection = {}
         for item, val in collection.items():
+            if callable(val):
+                val = {'do': val}
+
             if 'do' in val:
                 flat_collection[item] = val
             else:
                 sub_items = Runner.recursive_flatten_collection(val)
                 flat_collection.update({f"{item}/{key}": subval for key, subval in sub_items.items()})
 
-        for key in flat_collection:
-            flat_collection[key]['full_name'] = key
-
         return flat_collection
 
     def get_aliases(self, collection): 
         aliases = {}
-        for item, val in collection.items():
+        for key, val in collection.items():
             if 'alias' in val:
-                aliases[val['alias']] = val
+                aliases[val['alias']] = key
 
         return aliases
 
@@ -73,7 +77,7 @@ class Runner(object):
         """
         if string in self.collection:
             # if we find an exact match, use it
-            return self.collection[string]
+            return string
         elif string in self.aliases:
             # if we find an exact alias match, use it
             return self.aliases[string]
@@ -93,8 +97,7 @@ class Runner(object):
 
         # If we find only one "stem" match, that's our match
         if len(candidates) == 1:
-            match = list(candidates.keys())[0]
-            return self.collection[list(candidates.keys())[0]]
+            return list(candidates.keys())[0]
 
         # if we have more than one "stem" match, try to use the pre-stem parts
         # to find a single match.
@@ -103,13 +106,13 @@ class Runner(object):
         # strings.
         #
         # we don't require things to be consecutive
-        path_matched_candidates = {}
+        path_matched_candidates = []
         for candidate, candidate_parents in candidates.items():
             if self.recursive_path_parents_match(string_parents, candidate_parents):
                 path_matched_candidates.append(candidate)
 
         if len(path_matched_candidates) == 1:
-            return self.collection[path_matched_candidates[0]]
+            return path_matched_candidates[0]
 
         print('could not choose between:')
         for candidate in sorted(path_matched_candidates):
@@ -176,13 +179,14 @@ class Runner(object):
         save_plot_kwargs={},
         save_dataframe_kwargs={},
     ):
-        item = self.get_item(item_name_queried)
-        item_name = item['full_name']
+        item_name = self.get_item(item_name_queried)
+        item = self.collection[item_name]
         item_kwargs = {
             **item.get('kwargs', {}),
             **item_kwargs,
         }
 
+        print("I need to give the expander only the stem, not the possibly-folder-containing full name")
         to_run = item.get('expander', self.default_expander)(item_name, item_kwargs)
         if not run_expansions:
             to_run = to_run[:1]

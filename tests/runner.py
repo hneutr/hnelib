@@ -16,6 +16,21 @@ class TestRunner:
         },
     })
 
+    def test_flatten_collection_bare_function(self):
+        func = lambda: print(1)
+        collection = {
+            'test': func
+        }
+
+        
+        expected = {
+            'test': {
+                'do': func
+            }
+        }
+
+        expect(Runner(collection).collection).to(equal(expected))
+
     def test_flatten_collection_no_nesting(self):
         collection = {
             'test': {
@@ -26,10 +41,7 @@ class TestRunner:
             },
         }
 
-        runner = Runner(collection)
-        actual = runner.collection
-
-        expect(actual).to(equal(collection))
+        expect(Runner(collection).collection).to(equal(collection))
 
     def test_flatten_collection_nesting(self):
         runner = Runner({
@@ -83,38 +95,24 @@ class TestRunner:
     def test_find_item_exact_match(self):
         actual = self.runner.get_item('top-test')
 
-        expect(actual).to(equal({
-            'do': 2,
-        }))
+        expect(actual).to(equal('top-test'))
 
     def test_find_item_nested_exact_match(self):
         actual = self.runner.get_item('test/subtest')
 
-        expect(actual).to(equal({
-            'do': 1,
-            'alias': 'alias-of-test',
-        }))
+        expect(actual).to(equal('test/subtest'))
 
     def test_find_item_alias_match(self):
         actual = self.runner.get_item('alias-of-test')
 
-        expect(actual).to(equal({
-            'do': 1,
-            'alias': 'alias-of-test',
-        }))
+        expect(actual).to(equal('test/subtest'))
 
     def test_find_item_stem_exact_match(self):
         actual = self.runner.get_item('subtest')
 
-        expect(actual).to(equal({
-            'do': 1,
-            'alias': 'alias-of-test',
-        }))
+        expect(actual).to(equal('test/subtest'))
 
     def test_find_item_half_match(self):
         actual = self.runner.get_item('t/subtest')
 
-        expect(actual).to(equal({
-            'do': 1,
-            'alias': 'alias-of-test',
-        }))
+        expect(actual).to(equal('test/subtest'))
