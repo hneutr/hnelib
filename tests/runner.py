@@ -116,3 +116,15 @@ class TestRunner:
         actual = self.runner.get_item('t/subtest')
 
         expect(actual).to(equal('test/subtest'))
+
+    def test_weird_case(self):
+        collection = {
+            "questions/1-winners-and-losers/1-demographics/across-demographics": lambda: 1,
+            "questions/2-who-competes-with-whom/3-by-stiffness/across-demographics": lambda: 2,
+        }
+
+        runner = Runner(collection)
+
+        expect(runner.get_item('q/1/1/across-demographics')).to(equal(
+            'questions/1-winners-and-losers/1-demographics/across-demographics'
+        ))

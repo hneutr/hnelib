@@ -108,6 +108,7 @@ class Runner(object):
         # we don't require things to be consecutive
         path_matched_candidates = []
         for candidate, candidate_parents in candidates.items():
+            print(candidate)
             if self.recursive_path_parents_match(string_parents, candidate_parents):
                 path_matched_candidates.append(candidate)
 
@@ -126,7 +127,8 @@ class Runner(object):
             return True
 
         for i, parent in enumerate(parents):
-            if parent.startswith(candidate_parents[0]):
+            if candidate_parents[0].startswith(parent):
+                # print(f"{parent} == {candidate}")
                 return Runner.recursive_path_parents_match(parents[i + 1:], candidate_parents[1:])
 
         return False
