@@ -186,15 +186,18 @@ class Runner(object):
             **item_kwargs,
         }
 
-        print("I need to give the expander only the stem, not the possibly-folder-containing full name")
-        to_run = item.get('expander', self.default_expander)(item_name, item_kwargs)
+        item_path = Path(item_name)
+        item_parent = item_path.parent
+        item_stem = item_path.stem
+
+        to_run = item.get('expander', self.default_expander)(item_stem, item_kwargs)
         if not run_expansions:
             to_run = to_run[:1]
 
         figures_path = self.directory.joinpath('figures')
 
         for item_name, item_kwargs in to_run:
-            path = Path(*item.get('subdirs', [])).joinpath(item_name)
+            path = Path(*item.get('subdirs', [])).joinpath(item_path).joinpath(item_name)
 
             result = item['do'](**item_kwargs)
 
