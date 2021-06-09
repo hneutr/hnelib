@@ -197,7 +197,7 @@ class Runner(object):
         figures_path = self.directory.joinpath('figures')
 
         for item_name, item_kwargs in to_run:
-            path = Path(*item.get('subdirs', [])).joinpath(item_path).joinpath(item_name)
+            path = Path(*item.get('subdirs', [])).joinpath(item_parent).joinpath(item_name)
 
             result = item['do'](**item_kwargs)
 
