@@ -142,7 +142,6 @@ class Runner(object):
     def dataframes_directory(self):
         path = self.directory.joinpath('dataframes')
         path.mkdir(exist_ok=True, parents=True)
-        print('steve')
         return path
 
     @property
