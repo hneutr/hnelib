@@ -229,7 +229,7 @@ class Runner(object):
             os.system(f'open "{path}"')
 
     def save_dataframe(self, df, name, directory, suffix=".csv"):
-        path = directoyr.joinpath(name).with_suffix(suffix)
+        path = directory.joinpath(name).with_suffix(suffix)
         path.parent.mkdir(exist_ok=True, parents=True)
         df.to_csv(path, index=False)
 
