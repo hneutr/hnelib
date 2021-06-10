@@ -1,10 +1,17 @@
 import functools
+import copy
 import pandas as pd
 import os
 
 from pathlib import Path
 import matplotlib.pyplot as plt
 
+
+# TODO:
+# 1. add a "suffix_expander" expander: takes a list of options, a key (to supply the
+#    option on), and generates the expansions of the form `/name-{option}`
+# 2. add a "nesting_expander" expander: takes a dictionary of lists of options,
+#    key is kwargs key, list is values to expand
 
 class AmbiguousCollectionQuery(Exception):
     pass
@@ -127,7 +134,6 @@ class Runner(object):
 
         for i, parent in enumerate(parents):
             if candidate_parents[0].startswith(parent):
-                # print(f"{parent} == {candidate}")
                 return Runner.recursive_path_parents_match(parents[i + 1:], candidate_parents[1:])
 
         return False
@@ -160,6 +166,20 @@ class Runner(object):
     @staticmethod
     def default_expander(name, kwargs={}):
         return [(name, kwargs)]
+
+    @staticmethod
+    def get_suffix_expander(options, key):
+        def expander(name, kwargs={}):
+            expansions = []
+            for option in options:
+                expansion_kwargs = copy.deepcopy(kwargs)
+                expansion_kwargs[key] = option
+                expansion_name = Path(f"{name}-{option}")
+                expansions.append((expansion_name, expansion_kwargs))
+
+            return expansions
+
+        return expander
 
     @staticmethod
     def default_dataframe_formatter(df):
