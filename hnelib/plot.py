@@ -68,8 +68,8 @@ def annotate_pearson(ax, xs, ys, xy_loc=(.1, .9), annotate_kwargs={}):
     )
 
 def get_max_lims(axes):
-    xlims = itertools.chain.from_iterable([ax.get_xlim() for ax in axes])
-    ylims = itertools.chain.from_iterable([ax.get_ylim() for ax in axes])
+    xlims = list(itertools.chain.from_iterable([ax.get_xlim() for ax in axes]))
+    ylims = list(itertools.chain.from_iterable([ax.get_ylim() for ax in axes]))
     return min(xlims), max(xlims), min(ylims), max(ylims)
 
 
