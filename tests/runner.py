@@ -1,4 +1,5 @@
 import pytest
+from pathlib import Path
 from expects import *
 
 from hnelib.runner import Runner
@@ -128,3 +129,93 @@ class TestRunner:
         expect(runner.get_item('q/1/1/across-demographics')).to(equal(
             'questions/1-winners-and-losers/1-demographics/across-demographics'
         ))
+
+    def test_expander_prefix(self):
+        expander = Runner.get_expander(prefixes={'test_kwarg': [1, 2]})
+
+        expected = [
+            (Path('1-test'), {'test_kwarg': 1}),
+            (Path('2-test'), {'test_kwarg': 2}),
+        ]
+
+        expect(expander('test')).to(equal(expected))
+
+    def test_expander_prefix_with_kwargs(self):
+        expander = Runner.get_expander(prefixes={'test_kwarg': [1, 2]})
+
+        expected = [
+            (Path('2-test'), {'test_kwarg': 2}),
+        ]
+
+        expect(expander('test', kwargs={'test_kwarg': 2})).to(equal(expected))
+
+    def test_expander_multiple_prefixes(self):
+        expander = Runner.get_expander(
+            prefixes={
+                'test_kwarg1': [1, 2],
+                'test_kwarg2': [3, 4],
+            }
+        )
+
+        expected = [
+            (Path('1-3-test'), {'test_kwarg1': 1, 'test_kwarg2': 3}),
+            (Path('1-4-test'), {'test_kwarg1': 1, 'test_kwarg2': 4}),
+            (Path('2-3-test'), {'test_kwarg1': 2, 'test_kwarg2': 3}),
+            (Path('2-4-test'), {'test_kwarg1': 2, 'test_kwarg2': 4}),
+        ]
+
+        expect(expander('test')).to(equal(expected))
+
+    def test_expander_directory(self):
+        expander = Runner.get_expander(
+            directories={
+                'directory': [1, 2],
+            },
+        )
+
+        expected = [
+            (Path('1', 'test'), {'directory': 1}),
+            (Path('2', 'test'), {'directory': 2}),
+        ]
+
+        expect(expander('test')).to(equal(expected))
+
+    def test_expander_suffix(self):
+        expander = Runner.get_expander(
+            suffixes={
+                'suffix': [1, 2],
+            },
+        )
+
+        expected = [
+            (Path('test-1'), {'suffix': 1}),
+            (Path('test-2'), {'suffix': 2}),
+        ]
+
+        expect(expander('test')).to(equal(expected))
+
+    def test_expander_prefix_suffix_directory(self):
+        expander = Runner.get_expander(
+            prefixes={
+                'prefix': [1, 2],
+            },
+            suffixes={
+                'suffix': [3, 4],
+            },
+            directories={
+                'directory': [5, 6],
+            },
+        )
+
+        expected = [
+            (Path('5', '1-test-3'), {'prefix': 1, 'suffix': 3, 'directory': 5}),
+            (Path('6', '1-test-3'), {'prefix': 1, 'suffix': 3, 'directory': 6}),
+            (Path('5', '1-test-4'), {'prefix': 1, 'suffix': 4, 'directory': 5}),
+            (Path('6', '1-test-4'), {'prefix': 1, 'suffix': 4, 'directory': 6}),
+            (Path('5', '2-test-3'), {'prefix': 2, 'suffix': 3, 'directory': 5}),
+            (Path('6', '2-test-3'), {'prefix': 2, 'suffix': 3, 'directory': 6}),
+            (Path('5', '2-test-4'), {'prefix': 2, 'suffix': 4, 'directory': 5}),
+            (Path('6', '2-test-4'), {'prefix': 2, 'suffix': 4, 'directory': 6}),
+        ]
+
+        expect(expander('test')).to(equal(expected))

@@ -1,4 +1,5 @@
 import functools
+import itertools
 import copy
 import pandas as pd
 import os
@@ -165,16 +166,70 @@ class Runner(object):
 
     @staticmethod
     def default_expander(name, kwargs={}):
+        """
+        the default expander doesn't do anything, but in general, an expander
+        takes a (name, kwargs) tuple and generates expansions from it.
+        """
         return [(name, kwargs)]
 
     @staticmethod
-    def get_suffix_expander(options, key):
+    def get_expander(prefixes={}, suffixes={}, directories={}):
+        """
+        TODO: 
+        - change `name_options` to `suffixes`
+        - add `prefixes`
+        - change `directory_options` to `directories`
+
+
+        name_options: a dictionary of lists. These will be appended to the name of the plot
+            - keys: arguments to the function
+            - values: a list of arguments to expand
+        directory_options: a dictionary of lists. These will be turned into
+        directories to put the plot in
+            - keys: arguments to the function
+            - values: a list of arguments to expand
+        """
+        prefix_keys = list(prefixes.keys())
+        suffix_keys = list(suffixes.keys())
+        directory_keys = list(directories.keys())
+
+        all_options = {
+            **prefixes,
+            **suffixes,
+            **directories,
+        }
+
         def expander(name, kwargs={}):
             expansions = []
-            for option in options:
+            for option_set in itertools.product(*list(all_options.values())):
                 expansion_kwargs = copy.deepcopy(kwargs)
-                expansion_kwargs[key] = option
-                expansion_name = Path(f"{name}-{option}")
+
+                index = 0
+
+                prefix_kwargs = {k: option_set[index + i] for i, k in enumerate(prefix_keys)}
+                index += len(prefixes)
+
+                suffix_kwargs = {k: option_set[index + i] for i, k in enumerate(suffix_keys)}
+                index += len(suffixes)
+
+                directory_kwargs = {k: option_set[index + i] for i, k in enumerate(directory_keys)}
+
+                expansion_kwargs.update(prefix_kwargs)
+                expansion_kwargs.update(suffix_kwargs)
+                expansion_kwargs.update(directory_kwargs)
+
+                # Here's where we filter to the requested kwargs and don't
+                # generate expansions that contradict the supplied kwargs
+                if any([v for k, v in expansion_kwargs.items() if k in kwargs and kwargs[k] != v]):
+                    continue
+
+                stem_components = list(prefix_kwargs.values()) + [name] + list(suffix_kwargs.values())
+                stem = "-".join([str(c) for c in stem_components])
+
+                directories = [str(d) for d in list(directory_kwargs.values())]
+
+                expansion_name = Path(*directories).joinpath(stem)
+
                 expansions.append((expansion_name, expansion_kwargs))
 
             return expansions
