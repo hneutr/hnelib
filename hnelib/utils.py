@@ -8,3 +8,7 @@ def empty_directory(directory, recursive=True, delete=True):
 
     if delete and not len(list(directory.glob('*'))):
         directory.rmdir()
+
+def convert_fraction_to_percentage_and_round(fraction):
+    percentage = 100 * fraction
+    return round(percentage)
