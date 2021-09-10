@@ -9,10 +9,11 @@ import matplotlib.pyplot as plt
 
 
 # TODO:
-# 1. add a "suffix_expander" expander: takes a list of options, a key (to supply the
-#    option on), and generates the expansions of the form `/name-{option}`
-# 2. add a "nesting_expander" expander: takes a dictionary of lists of options,
-#    key is kwargs key, list is values to expand
+# - support non-terminal kwargs (put kwargs on parent, apply kwargs to all
+# child plots)
+# - allow for not writing the full terminal path if there is only one match
+# for the path
+# - allow specifying a path and running all objects underneath that path
 
 class AmbiguousCollectionQuery(Exception):
     pass
@@ -236,6 +237,59 @@ class Runner(object):
 
         return expander
 
+    def get_result_path(self, item_name_queried, item_kwargs={}):
+        """
+        This function returns a path for a given item query and kwargs combination.
+
+        The kwargs should fully specify any parameters that are later expanded.
+
+        The idea here is to be able to reference output locations without
+        computing things. E.g., loading dataframes saved via plotters.
+        """
+        item_name = self.get_item(item_name_queried)
+        item = self.collection[item_name]
+        item_kwargs = {
+            **item.get('kwargs', {}),
+            **item_kwargs,
+        }
+
+        item_path = Path(item_name)
+        item_parent = item_path.parent
+        item_stem = item_path.stem
+
+        to_run = item.get('expander', self.default_expander)(item_stem, item_kwargs)
+
+        if len(to_run) > 1:
+            raise AmbiguousCollectionQuery
+
+        expanded_item_name, _ = to_run[0]
+
+        path = Path(*item.get('subdirs', [])).joinpath(item_parent).joinpath(expanded_item_name)
+        return path
+
+    def get_qualified_path_for_result(self, result_path, directory, suffix):
+        return directory.joinpath(result_path.parent, result_path.name + suffix)
+
+    def get_figure_path(self, item_name_queried, item_kwargs={}, suffix='.png'):
+        """
+        returns the path to a figure
+        """
+        return self.get_qualified_path_for_result(
+            result_path=self.get_result_path(item_name_queried, item_kwargs),
+            directory=self.figures_directory,
+            suffix=suffix,
+        )
+
+    def get_dataframe_path(self, item_name_queried, item_kwargs={}, suffix='.csv'):
+        """
+        returns the path to a dataframe
+        """
+        return self.get_qualified_path_for_result(
+            result_path=self.get_result_path(item_name_queried, item_kwargs),
+            directory=self.dataframes_directory,
+            suffix=suffix,
+        )
+
     @staticmethod
     def default_dataframe_formatter(df):
         return df.copy()
@@ -244,6 +298,7 @@ class Runner(object):
         for item in self.collection:
             print(item)
             self.run(item, run_expansions=True, **kwargs)
+
 
     def run(
         self,

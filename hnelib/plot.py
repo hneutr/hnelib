@@ -112,3 +112,9 @@ def add_gridlines(ax, xs=[], ys=[], color=COLORS['dark_gray'], zorder=1, alpha=.
             lw=lw,
             **kwargs,
         )
+
+
+def hide_axis(ax):
+    ax.set_frame_on(False)
+    ax.set_xticks([])
+    ax.set_yticks([])

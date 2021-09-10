@@ -219,3 +219,41 @@ class TestRunner:
         ]
 
         expect(expander('test')).to(equal(expected))
+
+    def test_get_result_path(self):
+        runner =  Runner({
+            'test': {
+                'subtest': {
+                    'do': 1,
+                    'expander': Runner.get_expander(
+                        directories={'dir': [1, 2]},
+                        prefixes={'pre': [3, 4]},
+                        suffixes={'post': [5, 6]},
+                    ),
+                },
+            },
+        })
+
+        expected = Path('test', '2', '4-subtest-6')
+        actual = runner.get_result_path('test/subtest', {'dir': 2, 'pre': 4, 'post': 6})
+
+        expect(actual).to(equal(expected))
+
+    def test_get_dataframe_path(self):
+        runner =  Runner({
+            'test': {
+                'subtest': {
+                    'do': 1,
+                    'expander': Runner.get_expander(
+                        directories={'dir': [1, 2]},
+                        prefixes={'pre': [3, 4]},
+                        suffixes={'post': [5, 6]},
+                    ),
+                },
+            },
+        })
+
+        expected = Path.cwd().joinpath('results', 'dataframes', 'test', '2', '4-subtest-6.csv')
+        actual = runner.get_dataframe_path('test/subtest', {'dir': 2, 'pre': 4, 'post': 6})
+
+        expect(actual).to(equal(expected))
