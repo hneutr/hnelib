@@ -257,3 +257,140 @@ class TestRunner:
         actual = runner.get_dataframe_path('test/subtest', {'dir': 2, 'pre': 4, 'post': 6})
 
         expect(actual).to(equal(expected))
+
+    def test_inherited_parameters_are_applied(self):
+        """
+        test that parameter defaults set at a non-leaf node are propogated down
+        """
+        runner =  Runner({
+            'test': {
+                'subtest': {
+                    'do': 1,
+                    'kwargs': {
+                        'param_one': 1
+                    },
+                },
+                'sub': {
+                    'subsubtest': {
+                        'do': 2,
+                        'kwargs': {
+                            'param_one': 2
+                        },
+                    },
+                },
+                'kwargs': {
+                    'param_two': 3,
+                },
+            },
+        })
+
+        expected = {
+            'test/subtest': {
+                'do': 1,
+                'kwargs': {
+                    'param_two': 3,
+                    'param_one': 1,
+                },
+            },
+            'test/sub/subsubtest': {
+                'do': 2,
+                'kwargs': {
+                    'param_two': 3,
+                    'param_one': 2,
+                },
+            },
+        }
+
+        expect(runner.collection).to(equal(expected))
+
+    def test_inherited_parameter_can_be_overridden(self):
+        """
+        test that parameter defaults set at a non-leaf node can be overwritten by children
+        """
+        runner =  Runner({
+            'test': {
+                'subtest': {
+                    'do': 1,
+                    'kwargs': {
+                        'param_two': 1
+                    },
+                },
+                'kwargs': {
+                    'param_two': 3,
+                },
+            },
+        })
+
+        expected = {
+            'test/subtest': {
+                'do': 1,
+                'kwargs': {
+                    'param_two': 1,
+                },
+            },
+        }
+
+        expect(runner.collection).to(equal(expected))
+
+    def test_parameters_are_not_applied_to_functions_that_do_not_take_them(self):
+        """
+        test that parameters are not applied to functions that cannot accept them
+        """
+        def test_function(param_one, param_two):
+            pass
+
+        runner =  Runner({
+            'test': {
+                'subtest': {
+                    'do': test_function,
+                    'kwargs': {
+                        'param_one': 1
+                    },
+                },
+                'kwargs': {
+                    'param_three': 3,
+                },
+            },
+        })
+
+        expected = {
+            'test/subtest': {
+                'do': test_function,
+                'kwargs': {
+                    'param_one': 1,
+                },
+            },
+        }
+
+        expect(runner.collection).to(equal(expected))
+
+    # @pytest.mark.focus
+    def test_inherited_are_applied_to_functions_with_kwargs(self):
+        def test_function(param_one, param_two, **kwargs):
+            pass
+
+        runner =  Runner({
+            'test': {
+                'subtest': {
+                    'do': test_function,
+                    'kwargs': {
+                        'param_one': 1
+                    },
+                },
+                'kwargs': {
+                    'param_three': 3,
+                },
+            },
+        })
+
+        expected = {
+            'test/subtest': {
+                'do': test_function,
+                'kwargs': {
+                    'param_one': 1,
+                    'param_three': 3,
+                },
+            },
+        }
+
+        expect(runner.collection).to(equal(expected))

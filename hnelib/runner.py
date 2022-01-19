@@ -3,6 +3,7 @@ import itertools
 import copy
 import pandas as pd
 import os
+import inspect
 
 from pathlib import Path
 import matplotlib.pyplot as plt
@@ -49,20 +50,76 @@ class Runner(object):
         self.collection = self.recursive_flatten_collection(collection)
         self.aliases = self.get_aliases(self.collection)
 
-    @staticmethod
-    def recursive_flatten_collection(collection):
+    @classmethod
+    def recursive_flatten_collection(cls, collection):
+        """
+        takes a nested dictionary like:
+        {
+            'directory': {
+                'item_1': {
+                    'do': function_1,
+                },
+                'item_2': {
+                    'do': function_2,
+                },
+            },
+        }
+
+        and turns it into a flat dictionary like:
+        {
+            'directory/item_1': {
+                'do': function_1,
+            },
+            'directory/item_2': {
+                'do': function_2,
+            },
+        }
+
+        if there are kwargs applied at the containing layers, they will be
+        applied to the inner ones
+        """
         flat_collection = {}
+
+        kwargs = collection.pop('kwargs', {})
+
         for item, val in collection.items():
             if callable(val):
                 val = {'do': val}
 
+            val['kwargs'] = {
+                **kwargs,
+                **val.get('kwargs', {})
+            }
+
             if 'do' in val:
-                flat_collection[item] = val
+                # flat_collection[item] = val
+                flat_collection[item] = cls.sanitize_kwargs_for_do_function(val)
             else:
                 sub_items = Runner.recursive_flatten_collection(val)
                 flat_collection.update({f"{item}/{key}": subval for key, subval in sub_items.items()})
 
         return flat_collection
+
+    @classmethod
+    def sanitize_kwargs_for_do_function(cls, val):
+        """
+        removes kwargs that will cause an error of the function
+        """
+        kwargs = val.pop('kwargs', {})
+
+        do = val['do']
+
+        if callable(do):
+            (_args, _varargs, _kwargs, _, _, _, _)  = inspect.getfullargspec(do)
+
+            # sanitize args if the function only has static arguments
+            if _varargs == None and _kwargs == None:
+                kwargs = {k: v for k, v in kwargs.items() if k in _args}
+
+        if len(kwargs):
+            val['kwargs'] = kwargs
+
+        return val
 
     def get_aliases(self, collection): 
         aliases = {}
@@ -309,22 +366,7 @@ class Runner(object):
         save_plot_kwargs={},
         save_dataframe_kwargs={},
     ):
-        item_name = self.get_item(item_name_queried)
-        item = self.collection[item_name]
-        item_kwargs = {
-            **item.get('kwargs', {}),
-            **item_kwargs,
-        }
-
-        item_path = Path(item_name)
-        item_parent = item_path.parent
-        item_stem = item_path.stem
-
-        to_run = item.get('expander', self.default_expander)(item_stem, item_kwargs)
-        if not run_expansions:
-            to_run = to_run[:1]
-
-        figures_path = self.directory.joinpath('figures')
+        to_run = self.get_items_to_run(item_name_queried, item_kwargs, run_expansions)
 
         for item_name, item_kwargs in to_run:
             path = Path(*item.get('subdirs', [])).joinpath(item_parent).joinpath(item_name)
@@ -347,6 +389,29 @@ class Runner(object):
                     directory=self.dataframes_directory,
                     **save_dataframe_kwargs,
                 )
+
+    def get_items_to_run(
+        self,
+        item_name_queried,
+        item_kwargs={},
+        run_expansions=False,
+    ):
+        item_name = self.get_item(item_name_queried)
+        item = self.collection[item_name]
+        item_kwargs = {
+            **item.get('kwargs', {}),
+            **item_kwargs,
+        }
+
+        item_path = Path(item_name)
+        item_parent = item_path.parent
+        item_stem = item_path.stem
+
+        to_run = item.get('expander', self.default_expander)(item_stem, item_kwargs)
+        if not run_expansions:
+            to_run = to_run[:1]
+
+        return to_run
 
 
     def save_plot(self, name, directory, show=False, suffix='.png', dpi=400):
