@@ -380,7 +380,7 @@ class Runner(object):
         item_name, to_run = self.get_items_to_run(item_name_queried, item_kwargs, run_expansions)
 
         item = self.collection[item_name]
-        item_parent = item_path.parent
+        item_parent = Path(item_name).parent
 
         for item_name, item_kwargs in to_run:
             path = Path(*item.get('subdirs', [])).joinpath(item_parent).joinpath(item_name)
