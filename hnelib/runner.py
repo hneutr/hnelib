@@ -10,18 +10,24 @@ import matplotlib.pyplot as plt
 
 
 # TODO:
-# - support non-terminal kwargs (put kwargs on parent, apply kwargs to all
-# child plots)
+# - allow for adding expansions at non-terminal nodes
+#   - more broadly, allow for setting all flags at non-terminal nodes
 # - allow for not writing the full terminal path if there is only one match
 # for the path
 # - allow specifying a path and running all objects underneath that path
+# - remove `save_plots` argument and save plots only if a figure was generated
 
 class AmbiguousCollectionQuery(Exception):
     pass
 
 
 class Runner(object):
-    def __init__(self, collection={}, directory=Path.cwd().joinpath('results'), save_plots=True):
+    def __init__(
+        self,
+        collection={},
+        directory=Path.cwd().joinpath('results'),
+        save_plots=True,
+    ):
         """
         - collection: a dictionary of the form:
             {
@@ -371,7 +377,7 @@ class Runner(object):
         save_plot_kwargs={},
         save_dataframe_kwargs={},
     ):
-        to_run = self.get_items_to_run(item_name_queried, item_kwargs, run_expansions)
+        item, to_run = self.get_items_to_run(item_name_queried, item_kwargs, run_expansions)
 
         for item_name, item_kwargs in to_run:
             path = Path(*item.get('subdirs', [])).joinpath(item_parent).joinpath(item_name)
@@ -416,7 +422,7 @@ class Runner(object):
         if not run_expansions:
             to_run = to_run[:1]
 
-        return to_run
+        return item, to_run
 
     def save_plot(self, name, directory, show=False, suffix='.png', dpi=400):
         path = directory.joinpath(name).with_suffix(suffix)
