@@ -377,7 +377,10 @@ class Runner(object):
         save_plot_kwargs={},
         save_dataframe_kwargs={},
     ):
-        item, to_run = self.get_items_to_run(item_name_queried, item_kwargs, run_expansions)
+        item_name, to_run = self.get_items_to_run(item_name_queried, item_kwargs, run_expansions)
+
+        item = self.collection[item_name]
+        item_parent = item_path.parent
 
         for item_name, item_kwargs in to_run:
             path = Path(*item.get('subdirs', [])).joinpath(item_parent).joinpath(item_name)
@@ -415,14 +418,12 @@ class Runner(object):
         }
 
         item_path = Path(item_name)
-        item_parent = item_path.parent
-        item_stem = item_path.stem
 
-        to_run = item.get('expander', self.default_expander)(item_stem, item_kwargs)
+        to_run = item.get('expander', self.default_expander)(item_path.stem, item_kwargs)
         if not run_expansions:
             to_run = to_run[:1]
 
-        return item, to_run
+        return item_name, to_run
 
     def save_plot(self, name, directory, show=False, suffix='.png', dpi=400):
         path = directory.joinpath(name).with_suffix(suffix)
