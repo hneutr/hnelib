@@ -21,30 +21,35 @@ class AmbiguousCollectionQuery(Exception):
 
 
 class Runner(object):
-    def __init__(self, collection={}, directory=Path.cwd().joinpath('results')):
+    def __init__(self, collection={}, directory=Path.cwd().joinpath('results'), save_plots=True):
         """
-        A collection is a dictionary of the form:
-        {
-            'some_string': function,
-            ...
-            'some_string': {
-                'do': function,
-                'kwargs': {kwargs for function},
-                'no_plot': True if a matplotlib plot is not to be saved, False otherwise,
-                'subdirs': [list, of, subdirectories, to, preappend, to, name],
-                'expander': function to expand the name, # TODO: more on this
-                'alias': shortform_name_of_function,
-            },
-            'directory': {
-                'subdirectory': {
-                    'some_string1': ...,
-                    'some_string2': ...,
+        - collection: a dictionary of the form:
+            {
+                'some_string': function,
+                ...
+                'some_string': {
+                    'do': function,
+                    'kwargs': {kwargs for function},
+                    'save_plot': Default: True. True if a matplotlib plot is not
+                        to be saved, False otherwise,
+                    'subdirs': [list, of, subdirectories, to, preappend, to, name],
+                    'expander': function to expand the name, # TODO: more on this
+                    'alias': shortform_name_of_function,
+                },
+                'directory': {
+                    'subdirectory': {
+                        'some_string1': ...,
+                        'some_string2': ...,
+                    }
                 }
             }
-        }
-
-        directories can be arbitrarily nested. Anything that has the 'do'
-        keyword in it is an "item" to run later.
+            directories can be arbitrarily nested. Anything that has the 'do'
+            keyword in it is an "item" to run later.
+        - directory: Path. Default: `current working directory`/results. Where
+            results will be saved.
+        - save_plots: Bool. Default: True. Will expect items in the collection
+            to result in matplotlib figures and save them after running `do`. If
+            false, will not save them after running `do`.
         """
         self.directory = directory
         self.collection = self.recursive_flatten_collection(collection)
@@ -373,7 +378,7 @@ class Runner(object):
 
             result = item['do'](**item_kwargs)
 
-            if not item.get('no_plot'):
+            if item.get('save_plot', True):
                 self.save_plot(
                     path,
                     show=show,
@@ -412,7 +417,6 @@ class Runner(object):
             to_run = to_run[:1]
 
         return to_run
-
 
     def save_plot(self, name, directory, show=False, suffix='.png', dpi=400):
         path = directory.joinpath(name).with_suffix(suffix)
