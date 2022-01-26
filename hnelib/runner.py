@@ -358,8 +358,8 @@ class Runner(object):
             suffix=suffix,
         )
 
-    def get_dataframe(self, **kwargs):
-        path = self.get_dataframe_path(**kwargs)
+    def get_dataframe(self, *args, **kwargs):
+        path = self.get_dataframe_path(*args, **kwargs)
         return pd.read_csv(path)
 
     @staticmethod
