@@ -358,6 +358,10 @@ class Runner(object):
             suffix=suffix,
         )
 
+    def get_dataframe(self, **kwargs):
+        path = self.get_dataframe_path(**kwargs)
+        return pd.read_csv(path)
+
     @staticmethod
     def default_dataframe_formatter(df):
         return df.copy()
