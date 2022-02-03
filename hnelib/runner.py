@@ -16,6 +16,7 @@ import matplotlib.pyplot as plt
 # for the path
 # - allow specifying a path and running all objects underneath that path
 # - remove `save_plots` argument and save plots only if a figure was generated
+# - make `get_dataframe` run the item if the dataframe doesn't exist
 
 class AmbiguousCollectionQuery(Exception):
     pass
@@ -446,7 +447,7 @@ class Runner(object):
         path.parent.mkdir(exist_ok=True, parents=True)
         df.to_csv(path, index=False)
 
-    def clean():
+    def clean(self):
         """
         removes files in the base directories that are not part of the
         collection.
