@@ -468,22 +468,30 @@ class Runner(object):
                 for base in bases:
                     collection_paths.add(base.joinpath(path))
 
+        to_remove = []
         for base in bases:
-            if not base.exists():
-                continue
-
-            # for path in base.glob('**/*'):
             for path in base.rglob('*'):
-                print(path)
-                if not path.exists() or not path.parent.exists():
-                    continue
+                # if not path.exists() or not path.parent.exists():
+                #     continue
 
                 stemless_path = path.parent.joinpath(path.stem)
 
                 if stemless_path not in collection_paths:
-                    if not path.is_dir():
-                        path.unlink()
+                    to_remove.append(path)
+                    # if not path.is_dir():
+                    #     path.unlink()
 
-                    parent = path.parent
-                    if parent.is_dir() and not len(list(parent.glob('*'))):
-                        parent.rmdir()
+                    # parent = path.parent
+                    # if parent.is_dir() and not len(list(parent.glob('*'))):
+                    #     parent.rmdir()
+        
+        for path in to_remove:
+            if not path.exists():
+                continue
+
+            if not path.is_dir():
+                path.unlink()
+
+            parent = path.parent
+            if parent.is_dir() and not len(list(parent.glob('*'))):
+                parent.rmdir()
