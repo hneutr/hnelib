@@ -473,7 +473,7 @@ class Runner(object):
                 continue
 
             for path in base.glob('**/*'):
-                if not path.parent.exists():
+                if not path.exists() or not path.parent.exists():
                     continue
 
                 stemless_path = path.parent.joinpath(path.stem)
