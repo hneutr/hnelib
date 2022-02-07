@@ -472,7 +472,8 @@ class Runner(object):
             if not base.exists():
                 continue
 
-            for path in base.glob('**/*'):
+            # for path in base.glob('**/*'):
+            for path in base.rglob('*'):
                 if not path.exists() or not path.parent.exists():
                     continue
 
