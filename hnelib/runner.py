@@ -469,6 +469,9 @@ class Runner(object):
                     collection_paths.add(base.joinpath(path))
 
         for base in bases:
+            if not base.exists():
+                continue
+
             for path in self.directory.glob('**/*'):
                 stemless_path = path.parent.joinpath(path.stem)
 
