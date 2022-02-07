@@ -473,7 +473,9 @@ class Runner(object):
                 continue
 
             for path in base.glob('**/*'):
-                print(path)
+                if not path.parent.exists():
+                    continue
+
                 stemless_path = path.parent.joinpath(path.stem)
 
                 if stemless_path not in collection_paths:
