@@ -1,3 +1,5 @@
+import pandas as pd
+
 def empty_directory(directory, recursive=True, delete=True):
     for f in directory.glob('*'):
         if f.is_file():
@@ -18,3 +20,10 @@ def fraction_to_percent(fraction, round_to=0):
             percent = int(percent)
 
     return percent
+
+
+def series_to_list(thing):
+    if isinstance(thing, pd.Series):
+        thing = list(thing)
+
+    return thing
