@@ -123,8 +123,8 @@ def hide_axis(ax):
 def stringify_numbers_and_remove_zeros_past_decimal_point(numbers):
     strings = []
     for number in numbers:
-        string = ''
-        if '.' in str(number):
+        string = str(number)
+        if '.' in string:
             string, decimal_part = str(number).split('.')
 
             if decimal_part != '0':
