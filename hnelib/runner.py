@@ -462,6 +462,8 @@ class Runner(object):
                 item.get('kwargs', {}),
             )
 
+            print("I think we're not actually getting the expansions...")
+
             for name, _ in expansions:
                 path = Path(*item.get('subdirs', [])).joinpath(name)
 
@@ -471,20 +473,11 @@ class Runner(object):
         to_remove = []
         for base in bases:
             for path in base.rglob('*'):
-                # if not path.exists() or not path.parent.exists():
-                #     continue
-
                 stemless_path = path.parent.joinpath(path.stem)
 
                 if stemless_path not in collection_paths:
                     to_remove.append(path)
-                    # if not path.is_dir():
-                    #     path.unlink()
 
-                    # parent = path.parent
-                    # if parent.is_dir() and not len(list(parent.glob('*'))):
-                    #     parent.rmdir()
-        
         for path in to_remove:
             if not path.exists():
                 continue

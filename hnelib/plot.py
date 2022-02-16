@@ -118,3 +118,18 @@ def hide_axis(ax):
     ax.set_frame_on(False)
     ax.set_xticks([])
     ax.set_yticks([])
+
+
+def stringify_numbers_and_remove_zeros_past_decimal_point(numbers):
+    strings = []
+    for number in number:
+        string = ''
+        if '.' in str(number):
+            string, decimal_part = str(number).split('.')
+
+            if decimal_part != '0':
+                string += f'.{decimal_part}'
+
+        strings.append(string)
+
+    return strings
