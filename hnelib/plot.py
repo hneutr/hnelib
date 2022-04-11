@@ -21,6 +21,13 @@ DIMENSIONS = {
 FONT_SIZES = {}
 
 
+BASIC_ARROW_PROPS = {
+    'lw': .5,
+    'color': COLORS['dark_gray'],
+    'arrowstyle': '->',
+}
+
+
 def set_alpha_on_colors(colors, alpha=.25):
     """
     takes colors (single or list) and applies an alpha to them.
@@ -82,6 +89,17 @@ def set_lims_to_max(axes, x=True, y=True):
             ax.set_ylim(y_min, y_max)
 
 
+def square_axis(ax):
+    x_min, x_max = ax.get_xlim()
+    y_min, y_max = ax.get_ylim()
+
+    max_max = max(x_max, y_max)
+    min_min = max(x_min, y_min)
+
+    ax.set_xlim(min_min, max_max)
+    ax.set_ylim(min_min, max_max)
+
+
 def add_gridlines_on_ticks(ax, x=True, y=True, **kwargs):
     xs = ax.get_xticks() if x else []
     ys = ax.get_yticks() if y else []
@@ -120,16 +138,47 @@ def hide_axis(ax):
     ax.set_yticks([])
 
 
-def stringify_numbers_and_remove_zeros_past_decimal_point(numbers):
+def stringify_numbers_without_ugly_zeros(numbers):
     strings = []
     for number in numbers:
         string = str(number)
         if '.' in string:
             string, decimal_part = str(number).split('.')
 
+            string = "." if string == "0" else f"{string}."
+
             if decimal_part != '0':
-                string += f'.{decimal_part}'
+                string += f'{decimal_part}'
 
         strings.append(string)
 
     return strings
+
+
+def plot_connected_scatter(ax, df, x_column, y_column, color):
+    df = df.copy()
+    df = df.sort_values(by=x_column)
+    faded_color = set_alpha_on_colors(color)
+
+    ax.plot(
+        df[x_column],
+        df[y_column],
+        color=color,
+        lw=1,
+        zorder=1,
+    )
+
+    ax.scatter(
+        df[x_column],
+        df[y_column],
+        color='white',
+        zorder=2,
+    )
+
+    ax.scatter(
+        df[x_column],
+        df[y_column],
+        facecolor=faded_color,
+        edgecolor=color,
+        zorder=2,
+    )

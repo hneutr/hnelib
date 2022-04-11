@@ -1,4 +1,3 @@
-import functools
 import itertools
 import copy
 import pandas as pd
@@ -11,23 +10,37 @@ import matplotlib.pyplot as plt
 
 # TODO:
 # - allow for adding expansions at non-terminal nodes
-#   - more broadly, allow for setting all flags at non-terminal nodes
+#   - method: add `expand_over` key, which is a dict with values:
+#       - values: prefixes, suffixes, directories
+#       - treat them just like kwargs
 # - allow for not writing the full terminal path if there is only one match
 # for the path
 # - allow specifying a path and running all objects underneath that path
 # - remove `save_plots` argument and save plots only if a figure was generated
 # - make `get_dataframe` run the item if the dataframe doesn't exist
+# - remove "dataframes" and "figures" directory additions. it's too much
 
 class AmbiguousCollectionQuery(Exception):
     pass
 
 
+class ItemNotFound(Exception):
+    pass
+
+
 class Runner(object):
+    DEFAULTS = {
+        'df_suffix': '.gz',
+        'figure_suffix': '.png',
+    }
+
     def __init__(
         self,
         collection={},
         directory=Path.cwd().joinpath('results'),
         save_plots=True,
+        df_suffix=None,
+        figure_suffix=None,
     ):
         """
         - collection: a dictionary of the form:
@@ -61,6 +74,9 @@ class Runner(object):
         self.directory = directory
         self.collection = self.recursive_flatten_collection(collection)
         self.aliases = self.get_aliases(self.collection)
+
+        self.df_suffix = df_suffix if df_suffix else self.DEFAULTS['df_suffix']
+        self.figure_suffix = figure_suffix if figure_suffix else self.DEFAULTS['figure_suffix']
 
     @classmethod
     def recursive_flatten_collection(cls, collection):
@@ -122,18 +138,24 @@ class Runner(object):
         do = val['do']
 
         if callable(do):
-            (_args, _varargs, _kwargs, _, _, _, _)  = inspect.getfullargspec(do)
-
-            # sanitize args if the function only has static arguments
-            if _varargs == None and _kwargs == None:
-                kwargs = {k: v for k, v in kwargs.items() if k in _args}
+            kwargs = cls.sanitize_function_kwargs(do, kwargs)
 
         if len(kwargs):
             val['kwargs'] = kwargs
 
         return val
 
-    def get_aliases(self, collection): 
+    @classmethod
+    def sanitize_function_kwargs(cls, function, function_kwargs):
+        (_args, _varargs, _kwargs, _, _, _, _) = inspect.getfullargspec(function)
+
+        # sanitize args if the function only has static arguments
+        if _varargs is None and _kwargs is None:
+            function_kwargs = {k: v for k, v in function_kwargs.items() if k in _args}
+
+        return function_kwargs
+
+    def get_aliases(self, collection):
         aliases = {}
         for key, val in collection.items():
             if 'alias' in val:
@@ -144,7 +166,7 @@ class Runner(object):
     def get_item(self, string):
         """
         we want to be as generous as possible when responding to names, because
-        sometimes we won't always want to fully specify a name. 
+        sometimes we won't always want to fully specify a name.
 
         any time we can get a single match, we should return that match.
 
@@ -189,14 +211,16 @@ class Runner(object):
             if self.recursive_path_parents_match(string_parents, candidate_parents):
                 path_matched_candidates.append(candidate)
 
-        if len(path_matched_candidates) == 1:
+        if not path_matched_candidates:
+            raise ItemNotFound
+        elif len(path_matched_candidates) == 1:
             return path_matched_candidates[0]
+        else:
+            print('could not choose between:')
+            for candidate in sorted(path_matched_candidates):
+                print(f"\t{candidate}")
 
-        print('could not choose between:')
-        for candidate in sorted(path_matched_candidates):
-            print(f"\t{candidate}")
-
-        raise AmbiguousCollectionQuery
+            raise AmbiguousCollectionQuery
 
     @staticmethod
     def recursive_path_parents_match(parents, candidate_parents):
@@ -245,7 +269,7 @@ class Runner(object):
     @staticmethod
     def get_expander(prefixes={}, suffixes={}, directories={}):
         """
-        TODO: 
+        TODO:
         - change `name_options` to `suffixes`
         - add `prefixes`
         - change `directory_options` to `directories`
@@ -339,28 +363,34 @@ class Runner(object):
     def get_qualified_path_for_result(self, result_path, directory, suffix):
         return directory.joinpath(result_path.parent, result_path.name + suffix)
 
-    def get_figure_path(self, item_name_queried, item_kwargs={}, suffix='.png'):
+    def get_figure_path(self, item_name_queried, item_kwargs={}, suffix=None):
         """
         returns the path to a figure
         """
         return self.get_qualified_path_for_result(
             result_path=self.get_result_path(item_name_queried, item_kwargs),
             directory=self.figures_directory,
-            suffix=suffix,
+            suffix=suffix if suffix else self.figure_suffix,
         )
 
-    def get_dataframe_path(self, item_name_queried, item_kwargs={}, suffix='.csv'):
+    def get_dataframe_path(self, item_name_queried, item_kwargs={}, suffix=None):
         """
         returns the path to a dataframe
         """
         return self.get_qualified_path_for_result(
             result_path=self.get_result_path(item_name_queried, item_kwargs),
             directory=self.dataframes_directory,
-            suffix=suffix,
+            suffix=suffix if suffix else self.df_suffix,
         )
 
     def get_dataframe(self, *args, **kwargs):
         path = self.get_dataframe_path(*args, **kwargs)
+
+        if not path.exists():
+            item_name, to_run = self.get_items_to_run(*args, **kwargs)
+            print(f"running: {item_name}")
+            self.run(*args, **kwargs)
+
         return pd.read_csv(path)
 
     @staticmethod
@@ -372,6 +402,13 @@ class Runner(object):
             print(item)
             self.run(item, run_expansions=True, **kwargs)
 
+    def run_subcollection(self, query_string, **kwargs):
+        """
+        """
+        item_names = [c for c in self.collection if c.startswith(query_string)]
+        for item_name in item_names:
+            print(item_name)
+            self.run(item_name_queried=item_name, **kwargs)
 
     def run(
         self,
@@ -389,6 +426,8 @@ class Runner(object):
 
         for item_name, item_kwargs in to_run:
             path = Path(*item.get('subdirs', [])).joinpath(item_parent).joinpath(item_name)
+
+            item_kwargs = self.sanitize_function_kwargs(item['do'], item_kwargs)
 
             result = item['do'](**item_kwargs)
 
@@ -430,8 +469,8 @@ class Runner(object):
 
         return item_name, to_run
 
-    def save_plot(self, name, directory, show=False, suffix='.png', dpi=400):
-        path = directory.joinpath(name).with_suffix(suffix)
+    def save_plot(self, name, directory, show=False, suffix=None, dpi=400):
+        path = directory.joinpath(name).with_suffix(suffix if suffix else self.figure_suffix)
         path.parent.mkdir(exist_ok=True, parents=True)
         path = str(path)
 
@@ -442,8 +481,8 @@ class Runner(object):
         if show:
             os.system(f'open "{path}"')
 
-    def save_dataframe(self, df, name, directory, suffix=".csv"):
-        path = directory.joinpath(name).with_suffix(suffix)
+    def save_dataframe(self, df, name, directory, suffix=None):
+        path = directory.joinpath(name).with_suffix(suffix if suffix else self.df_suffix)
         path.parent.mkdir(exist_ok=True, parents=True)
         df.to_csv(path, index=False)
 

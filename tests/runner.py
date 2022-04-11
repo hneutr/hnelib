@@ -1,4 +1,4 @@
-import pytest
+from unittest.mock import patch
 from pathlib import Path
 from expects import *
 
@@ -364,12 +364,11 @@ class TestRunner:
 
         expect(runner.collection).to(equal(expected))
 
-    # @pytest.mark.focus
     def test_inherited_are_applied_to_functions_with_kwargs(self):
         def test_function(param_one, param_two, **kwargs):
             pass
 
-        runner =  Runner({
+        runner = Runner({
             'test': {
                 'subtest': {
                     'do': test_function,
@@ -394,3 +393,27 @@ class TestRunner:
         }
 
         expect(runner.collection).to(equal(expected))
+
+    # @pytest.mark.focus
+    def test_run_subcollection_matches(self):
+        actual = []
+        def test_function_to_run():
+            actual.append(1)
+
+        def test_function_not_to_be_run():
+            actual.append(2)
+
+        runner = Runner({
+            'test': {
+                'subtest': {
+                    'test1': test_function_to_run,
+                    'test2': test_function_to_run,
+                },
+                'not-subtest': test_function_not_to_be_run,
+            },
+        })
+
+        expected = [1, 1]
+
+        runner.run_subcollection('test/subtest')
+        expect(actual).to(equal(expected))
