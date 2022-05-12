@@ -1,11 +1,11 @@
-import itertools
-import copy
-import pandas as pd
-import os
-import inspect
-
 from pathlib import Path
+import copy
+import inspect
+import itertools
+import json
 import matplotlib.pyplot as plt
+import os
+import pandas as pd
 
 
 # TODO:
@@ -19,6 +19,7 @@ import matplotlib.pyplot as plt
 # - remove `save_plots` argument and save plots only if a figure was generated
 # - make `get_dataframe` run the item if the dataframe doesn't exist
 # - remove "dataframes" and "figures" directory additions. it's too much
+# - support saving of json
 
 class AmbiguousCollectionQuery(Exception):
     pass
@@ -120,7 +121,6 @@ class Runner(object):
             }
 
             if 'do' in val:
-                # flat_collection[item] = val
                 flat_collection[item] = cls.sanitize_kwargs_for_do_function(val)
             else:
                 sub_items = Runner.recursive_flatten_collection(val)
@@ -393,6 +393,29 @@ class Runner(object):
 
         return pd.read_csv(path)
 
+    def get_df(self, *args, **kwargs):
+        return self.get_dataframe(*args, **kwargs)
+
+    def get_json_path(self, item_name_queried, item_kwargs={}):
+        """
+        returns the path to a json file
+        """
+        return self.get_qualified_path_for_result(
+            result_path=self.get_result_path(item_name_queried, item_kwargs),
+            directory=self.dataframes_directory,
+            suffix='.json',
+        )
+
+    def get_json(self, *args, **kwargs):
+        path = self.get_json_path(*args, **kwargs)
+
+        if not path.exists():
+            item_name, to_run = self.get_items_to_run(*args, **kwargs)
+            print(f"running: {item_name}")
+            self.run(*args, **kwargs)
+
+        return json.loads(path.read_text())
+
     @staticmethod
     def default_dataframe_formatter(df):
         return df.copy()
@@ -402,13 +425,13 @@ class Runner(object):
             print(item)
             self.run(item, run_expansions=True, **kwargs)
 
-    def run_subcollection(self, query_string, **kwargs):
+    def run_subcollection(self, query_string, run_expansions=True, **kwargs):
         """
         """
         item_names = [c for c in self.collection if c.startswith(query_string)]
         for item_name in item_names:
             print(item_name)
-            self.run(item_name_queried=item_name, **kwargs)
+            self.run(item_name_queried=item_name, run_expansions=run_expansions, **kwargs)
 
     def run(
         self,
@@ -447,6 +470,17 @@ class Runner(object):
                     directory=self.dataframes_directory,
                     **save_dataframe_kwargs,
                 )
+            elif result != None:
+                # TODO: note that we're using the dataframes_directory here
+
+                try:
+                    self.save_json(
+                        result,
+                        path,
+                        directory=self.dataframes_directory,
+                    )
+                except TypeError:
+                    pass
 
     def get_items_to_run(
         self,
@@ -485,6 +519,11 @@ class Runner(object):
         path = directory.joinpath(name).with_suffix(suffix if suffix else self.df_suffix)
         path.parent.mkdir(exist_ok=True, parents=True)
         df.to_csv(path, index=False)
+
+    def save_json(self, thing, name, directory):
+        path = directory.joinpath(name).with_suffix('.json')
+        path.parent.mkdir(exist_ok=True, parents=True)
+        path.write_text(json.dumps(thing, indent=4, sort_keys=True))
 
     def clean(self):
         """

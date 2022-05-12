@@ -1,3 +1,4 @@
+import numpy as np
 import itertools
 from scipy.stats import gaussian_kde, pearsonr, spearmanr
 import matplotlib.colors
@@ -18,13 +19,32 @@ DIMENSIONS = {
 }
 
 
-FONT_SIZES = {}
+FONTSIZES = {
+    'axis': 13,
+    'tick': 11,
+    'annotation': 7,
+    'annotation-l': 9,
+    'annotation-xl': 10,
+}
 
 
 BASIC_ARROW_PROPS = {
     'lw': .5,
     'color': COLORS['dark_gray'],
     'arrowstyle': '->',
+}
+
+ZERO_SHRINK_A_ARROW_PROPS = {
+    **BASIC_ARROW_PROPS,
+    'shrinkA': 0,
+}
+
+HEADLESS_ARROW_PROPS = {
+    'lw': .5,
+    'color': COLORS['dark_gray'],
+    'arrowstyle': '-',
+    'shrinkA': 0,
+    'shrinkB': 0,
 }
 
 
@@ -111,6 +131,9 @@ def add_gridlines(ax, xs=[], ys=[], color=COLORS['dark_gray'], zorder=1, alpha=.
     """
     adds gridlines to the plot
     """
+    xlim = ax.get_xlim()
+    ylim = ax.get_ylim()
+
     for x in xs:
         ax.axvline(
             x,
@@ -131,6 +154,9 @@ def add_gridlines(ax, xs=[], ys=[], color=COLORS['dark_gray'], zorder=1, alpha=.
             **kwargs,
         )
 
+    ax.set_xlim(xlim)
+    ax.set_ylim(ylim)
+
 
 def hide_axis(ax):
     ax.set_frame_on(False)
@@ -142,20 +168,31 @@ def stringify_numbers_without_ugly_zeros(numbers):
     strings = []
     for number in numbers:
         string = str(number)
-        if '.' in string:
-            string, decimal_part = str(number).split('.')
 
-            string = "." if string == "0" else f"{string}."
+        prefix = ''
+        if '-' in string:
+            string = string.replace('-', '')
+            prefix = '-'
+
+        if '.' in string:
+            string, decimal_part = str(string).split('.')
+
+            string = "." if string == "0" else f"{string}"
 
             if decimal_part != '0':
+                if '.' not in string:
+                    string += '.'
+
                 string += f'{decimal_part}'
+
+        string = prefix + string
 
         strings.append(string)
 
     return strings
 
 
-def plot_connected_scatter(ax, df, x_column, y_column, color):
+def plot_connected_scatter(ax, df, x_column, y_column, color, s=30):
     df = df.copy()
     df = df.sort_values(by=x_column)
     faded_color = set_alpha_on_colors(color)
@@ -173,6 +210,7 @@ def plot_connected_scatter(ax, df, x_column, y_column, color):
         df[y_column],
         color='white',
         zorder=2,
+        s=s,
     )
 
     ax.scatter(
@@ -181,4 +219,104 @@ def plot_connected_scatter(ax, df, x_column, y_column, color):
         facecolor=faded_color,
         edgecolor=color,
         zorder=2,
+        s=s,
     )
+
+def plot_disconnected_scatter(ax, df, x_column, y_column, color, s=4, lw=1.5):
+    df = df.copy()
+    df = df.sort_values(by=x_column)
+    faded_color = set_alpha_on_colors(color, .75)
+
+    big_s = s * 2
+    small_s = s - 3
+
+    ax.plot(
+        df[x_column],
+        df[y_column],
+        color=color,
+        lw=1,
+        zorder=1,
+    )
+
+    ax.scatter(
+        df[x_column],
+        df[y_column],
+        color='white',
+        zorder=2,
+        s=big_s,
+    )
+
+    ax.scatter(
+        df[x_column],
+        df[y_column],
+        color=color,
+        zorder=2,
+        s=s,
+    )
+
+    ax.scatter(
+        df[x_column],
+        df[y_column],
+        color='w',
+        zorder=2,
+        marker='.',
+        s=small_s,
+    )
+
+
+def annotate_plot_letters(axes, x_pads, y_pad=1.15, fontsize=18, labels=[], horizontal_alignments=[]):
+    import string
+
+    if not horizontal_alignments:
+        horizontal_alignments = ['left' for i in range(len(axes))]
+
+    if not labels:
+        labels = list(string.ascii_uppercase)[:len(axes)]
+
+    for ax, label, x_pad, ha in zip(axes, labels, x_pads, horizontal_alignments):
+        ax.text(
+            x_pad,
+            y_pad,
+            label,
+            transform=ax.transAxes,
+            fontname='Arial',
+            fontsize=fontsize,
+            fontweight='bold',
+            va='top',
+            ha=ha,
+        )
+
+
+def set_label_fontsize(axes, fontsize):
+    for ax in axes:
+        ylabel = ax.get_ylabel()
+
+        if ylabel:
+            ax.set_ylabel(ylabel, size=fontsize)
+
+        xlabel = ax.get_xlabel()
+
+        if xlabel:
+            ax.set_xlabel(xlabel, size=fontsize)
+
+
+def set_ticklabel_fontsize(axes, fontsize):
+    for ax in axes:
+        ax.tick_params(axis='both', which='major', labelsize=fontsize)
+
+
+def finalize(
+    axes,
+    plot_label_x_pads=[],
+    plot_label_y_pad=1.15,
+    axis_fontsize=FONTSIZES['axis'],
+    tick_fontsize=FONTSIZES['tick'],
+):
+    if not isinstance(axes, list) and not isinstance(axes, np.ndarray):
+        axes = [axes]
+
+    if plot_label_x_pads:
+        annotate_plot_letters(axes, plot_label_x_pads, y_pad=plot_label_y_pad)
+
+    set_label_fontsize(axes, fontsize=axis_fontsize)
+    set_ticklabel_fontsize(axes, fontsize=tick_fontsize)
