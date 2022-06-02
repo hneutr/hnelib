@@ -335,6 +335,6 @@ def text_fraction_label(numerator, denominator, convert_hyphens=True):
     text = text.replace(' ', '\ ')
 
     if convert_hyphens:
-        text = text.replace("-", u"\u2010"),
+        text = text.replace("-", u"\u2010")
 
     return text
