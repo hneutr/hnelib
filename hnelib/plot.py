@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import itertools
 from scipy.stats import gaussian_kde, pearsonr, spearmanr
 import matplotlib.colors
@@ -23,6 +24,7 @@ FONTSIZES = {
     'axis': 13,
     'tick': 11,
     'annotation': 7,
+    'annotation-ml': 8,
     'annotation-l': 9,
     'annotation-xl': 10,
 }
@@ -48,12 +50,14 @@ HEADLESS_ARROW_PROPS = {
 }
 
 
-def set_alpha_on_colors(colors, alpha=.25):
+def set_alpha_on_colors(colors, alpha=.35):
     """
     takes colors (single or list) and applies an alpha to them.
     """
     if isinstance(colors, list):
         return [matplotlib.colors.to_rgba(c, alpha) for c in colors]
+    elif isinstance(colors, pd.Series):
+        return [matplotlib.colors.to_rgba(c, alpha) for c in list(colors)]
     else:
         return matplotlib.colors.to_rgba(colors, alpha)
 
@@ -177,7 +181,10 @@ def stringify_numbers_without_ugly_zeros(numbers):
         if '.' in string:
             string, decimal_part = str(string).split('.')
 
-            string = "." if string == "0" else f"{string}"
+            if decimal_part == "0" and string == "0":
+                string = "0"
+            else:
+                string = "." if string == "0" else f"{string}"
 
             if decimal_part != '0':
                 if '.' not in string:
@@ -320,3 +327,14 @@ def finalize(
 
     set_label_fontsize(axes, fontsize=axis_fontsize)
     set_ticklabel_fontsize(axes, fontsize=tick_fontsize)
+
+
+def text_fraction_label(numerator, denominator, convert_hyphens=True):
+    text = r"$\frac{\mathrm{" + numerator + "}}{\mathrm{" + denominator + "}}$"
+
+    text = text.replace(' ', '\ ')
+
+    if convert_hyphens:
+        text = text.replace("-", u"\u2010"),
+
+    return text

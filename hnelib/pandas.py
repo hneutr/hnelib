@@ -164,3 +164,36 @@ def get_groupby_info(df, groupby_cols):
     FAKE_GROUPBY_COL, in case it was added
     """
     return {c: df.iloc[0][c] for c in groupby_cols if c != FAKE_GROUPBY_COL}
+
+
+def adjust_significance_for_multiple_tests(
+    df,
+    p_col='P',
+    groupby_cols=[],
+    alpha=.05,
+    method='bonferroni',
+    significance_col='Significant',
+):
+    from statsmodels.stats.multitest import multipletests
+    df = df.copy()
+    df, groupby_cols = pad_groupby_cols(df, groupby_cols)
+
+    cols = list(df.columns)
+
+    new_dfs = []
+    for _, rows in df.groupby(groupby_cols):
+        rows = rows.copy()
+        p_values = rows[p_col]
+        
+        rejects = multipletests(p_values, alpha=alpha, method=method)
+        rows[significance_col] = [not reject for reject in rejects]
+
+        new_dfs.append(rows)
+
+    df = pd.concat(new_dfs)
+
+    df = df[
+        cols + [significance_col]
+    ].drop_duplicates()
+
+    return df
