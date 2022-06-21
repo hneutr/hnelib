@@ -197,3 +197,43 @@ def adjust_significance_for_multiple_tests(
     ].drop_duplicates()
 
     return df
+
+
+def annotate_duplicate_percentile(df, val_col, id_col, n_bins=100, out_col='Percentile'):
+    """
+    this function makes a percentile column that allows a given value to exist in multiple bins.
+    """
+    new_df = df.copy()[
+        [
+            val_col,
+            id_col,
+        ]
+    ].drop_duplicates()
+
+    new_df = new_df.sort_values(by=val_col)
+    bin_edges = np.linspace(0, len(new_df), n_bins + 1)
+
+    current_bin = 0
+    bin_annotations = []
+    for i in range(len(new_df)):
+        if current_bin < len(bin_edges):
+            if i > bin_edges[current_bin + 1]:
+                current_bin += 1
+
+        bin_annotations.append(current_bin)
+
+    new_df[out_col] = bin_annotations
+    
+    new_df = new_df[
+        [
+            id_col,
+            out_col,
+        ]
+    ].drop_duplicates()
+
+    df = df.copy().merge(
+        new_df,
+        on=id_col
+    )
+
+    return df

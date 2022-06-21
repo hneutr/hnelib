@@ -18,7 +18,6 @@ import pandas as pd
 # - allow specifying a path and running all objects underneath that path
 # - remove `save_plots` argument and save plots only if a figure was generated
 # - make `get_dataframe` run the item if the dataframe doesn't exist
-# - remove "dataframes" and "figures" directory additions. it's too much
 # - support saving of json
 
 class AmbiguousCollectionQuery(Exception):
