@@ -233,30 +233,8 @@ class Runner(object):
 
         return False
 
-    @property
-    def figures_directory(self):
-        path = self.directory.joinpath('figures')
-        path.mkdir(exist_ok=True, parents=True)
-        return path
-
-    @property
-    def dataframes_directory(self):
-        path = self.directory.joinpath('dataframes')
-        path.mkdir(exist_ok=True, parents=True)
-        return path
-
-    @property
-    def tables_directory(self):
-        return self.directory.joinpath('tables')
-
     def open_path(self, path):
         os.system(f'open "{str(path)}"')
-
-    def open_figures(self):
-        self.open_path(self.figures_directory)
-
-    def open_dataframes(self):
-        self.open_path(self.dataframes_directory)
 
     @staticmethod
     def default_expander(name, kwargs={}):
@@ -369,7 +347,7 @@ class Runner(object):
         """
         return self.get_qualified_path_for_result(
             result_path=self.get_result_path(item_name_queried, item_kwargs),
-            directory=self.figures_directory,
+            directory=self.directory,
             suffix=suffix if suffix else self.figure_suffix,
         )
 
@@ -379,7 +357,7 @@ class Runner(object):
         """
         return self.get_qualified_path_for_result(
             result_path=self.get_result_path(item_name_queried, item_kwargs),
-            directory=self.dataframes_directory,
+            directory=self.directory,
             suffix=suffix if suffix else self.df_suffix,
         )
 
@@ -402,7 +380,7 @@ class Runner(object):
         """
         return self.get_qualified_path_for_result(
             result_path=self.get_result_path(item_name_queried, item_kwargs),
-            directory=self.dataframes_directory,
+            directory=self.directory,
             suffix='.json',
         )
 
@@ -458,7 +436,7 @@ class Runner(object):
                 self.save_plot(
                     path,
                     show=show,
-                    directory=self.figures_directory,
+                    directory=self.directory,
                     **save_plot_kwargs,
                 )
 
@@ -467,17 +445,15 @@ class Runner(object):
                 self.save_dataframe(
                     df,
                     path,
-                    directory=self.dataframes_directory,
+                    directory=self.directory,
                     **save_dataframe_kwargs,
                 )
             elif result != None:
-                # TODO: note that we're using the dataframes_directory here
-
                 try:
                     self.save_json(
                         result,
                         path,
-                        directory=self.dataframes_directory,
+                        directory=self.directory,
                     )
                 except TypeError:
                     pass
@@ -532,8 +508,6 @@ class Runner(object):
         """
         collection_paths = set()
 
-        bases = [self.figures_directory, self.dataframes_directory]
-
         for name, item in self.collection.items():
             expansions = item.get('expander', self.default_expander)(
                 name,
@@ -545,16 +519,14 @@ class Runner(object):
             for name, _ in expansions:
                 path = Path(*item.get('subdirs', [])).joinpath(name)
 
-                for base in bases:
-                    collection_paths.add(base.joinpath(path))
+                collection_paths.add(self.directory.joinpath(path))
 
         to_remove = []
-        for base in bases:
-            for path in base.rglob('*'):
-                stemless_path = path.parent.joinpath(path.stem)
+        for path in self.directory.rglob('*'):
+            stemless_path = path.parent.joinpath(path.stem)
 
-                if stemless_path not in collection_paths:
-                    to_remove.append(path)
+            if stemless_path not in collection_paths:
+                to_remove.append(path)
 
         for path in to_remove:
             if not path.exists():

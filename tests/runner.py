@@ -253,7 +253,7 @@ class TestRunner:
             },
         })
 
-        expected = Path.cwd().joinpath('results', 'dataframes', 'test', '2', '4-subtest-6.csv')
+        expected = Path.cwd().joinpath('results', 'test', '2', '4-subtest-6.gz')
         actual = runner.get_dataframe_path('test/subtest', {'dir': 2, 'pre': 4, 'post': 6})
 
         expect(actual).to(equal(expected))
