@@ -7,6 +7,8 @@ import matplotlib.colors
 
 COLORS = {
     'dark_gray': '#5E5E5E',
+    'color_1': '#45A1F8',
+    'color_2': '#FF6437', 
 }
 
 DIMENSIONS = {

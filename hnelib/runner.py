@@ -75,6 +75,8 @@ class Runner(object):
         self.collection = self.recursive_flatten_collection(collection)
         self.aliases = self.get_aliases(self.collection)
 
+        self.save_plots = save_plots
+
         self.df_suffix = df_suffix if df_suffix else self.DEFAULTS['df_suffix']
         self.figure_suffix = figure_suffix if figure_suffix else self.DEFAULTS['figure_suffix']
 
@@ -431,7 +433,7 @@ class Runner(object):
 
             result = item['do'](**item_kwargs)
 
-            if item.get('save_plot', True):
+            if item.get('save_plot', True) and self.save_plots:
                 self.save_plot(
                     path,
                     show=show,
