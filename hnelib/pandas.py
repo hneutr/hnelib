@@ -210,6 +210,8 @@ def annotate_duplicate_percentile(df, val_col, id_col, n_bins=100, out_col='Perc
         ]
     ].drop_duplicates()
 
+    n_bins = min(n_bins, new_df[id_col].nunique())
+
     new_df = new_df.sort_values(by=val_col)
     bin_edges = np.linspace(0, len(new_df), n_bins + 1)
 

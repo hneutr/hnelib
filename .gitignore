@@ -4,3 +4,4 @@ env
 */__pycache__
 .eggs
 hnelib.egg-info
+tests/results
