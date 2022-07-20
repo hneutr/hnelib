@@ -5,6 +5,12 @@ from scipy.stats import gaussian_kde, pearsonr, spearmanr
 import matplotlib.colors
 
 
+WIDTHS = {
+    '1-col': 3.54331,
+    '2-col': 7.08661,
+}
+
+
 COLORS = {
     'dark_gray': '#5E5E5E',
     'color_1': '#45A1F8',
@@ -29,13 +35,25 @@ FONTSIZES = {
     'annotation-ml': 8,
     'annotation-l': 9,
     'annotation-xl': 10,
+    'figure-label': 18,
+    'new': {
+        'axis': 7,
+        'tick': 6,
+        'annotation': 5,
+        'annotation-ml': 6,
+        'annotation-l': 7,
+        'annotation-xl': 8,
+        'figure-label': 11,
+        'title': 9,
+        'legend': 6,
+    },
 }
 
 
 BASIC_ARROW_PROPS = {
-    'lw': .5,
+    'lw': .35,
     'color': COLORS['dark_gray'],
-    'arrowstyle': '->',
+    'arrowstyle': '->, head_width=.15, head_length=.21',
 }
 
 ZERO_SHRINK_A_ARROW_PROPS = {
@@ -44,7 +62,7 @@ ZERO_SHRINK_A_ARROW_PROPS = {
 }
 
 HEADLESS_ARROW_PROPS = {
-    'lw': .5,
+    'lw': .35,
     'color': COLORS['dark_gray'],
     'arrowstyle': '-',
     'shrinkA': 0,
@@ -133,7 +151,7 @@ def add_gridlines_on_ticks(ax, x=True, y=True, **kwargs):
     add_gridlines(ax, xs=xs, ys=ys, **kwargs)
 
 
-def add_gridlines(ax, xs=[], ys=[], color=COLORS['dark_gray'], zorder=1, alpha=.5, lw=1, **kwargs):
+def add_gridlines(ax, xs=[], ys=[], color=COLORS['dark_gray'], zorder=1, alpha=.5, lw=.5, **kwargs):
     """
     adds gridlines to the plot
     """
@@ -201,7 +219,7 @@ def stringify_numbers_without_ugly_zeros(numbers):
     return strings
 
 
-def plot_connected_scatter(ax, df, x_column, y_column, color, s=30):
+def plot_connected_scatter(ax, df, x_column, y_column, color, s=12, lw=.65):
     df = df.copy()
     df = df.sort_values(by=x_column)
     faded_color = set_alpha_on_colors(color)
@@ -210,8 +228,8 @@ def plot_connected_scatter(ax, df, x_column, y_column, color, s=30):
         df[x_column],
         df[y_column],
         color=color,
-        lw=1,
         zorder=1,
+        lw=lw,
     )
 
     ax.scatter(
@@ -220,6 +238,7 @@ def plot_connected_scatter(ax, df, x_column, y_column, color, s=30):
         color='white',
         zorder=2,
         s=s,
+        lw=lw,
     )
 
     ax.scatter(
@@ -229,6 +248,7 @@ def plot_connected_scatter(ax, df, x_column, y_column, color, s=30):
         edgecolor=color,
         zorder=2,
         s=s,
+        lw=lw,
     )
 
 def plot_disconnected_scatter(ax, df, x_column, y_column, color, s=4, lw=1.5):
@@ -273,7 +293,7 @@ def plot_disconnected_scatter(ax, df, x_column, y_column, color, s=4, lw=1.5):
     )
 
 
-def annotate_plot_letters(axes, x_pads, y_pad=1.15, fontsize=18, labels=[], horizontal_alignments=[]):
+def annotate_plot_letters(axes, x_pads, y_pad=1.15, fontsize=FONTSIZES['new']['figure-label'], labels=[], horizontal_alignments=[]):
     import string
 
     if not horizontal_alignments:
@@ -318,14 +338,15 @@ def finalize(
     axes,
     plot_label_x_pads=[],
     plot_label_y_pad=1.15,
-    axis_fontsize=FONTSIZES['axis'],
-    tick_fontsize=FONTSIZES['tick'],
+    axis_fontsize=FONTSIZES['new']['axis'],
+    tick_fontsize=FONTSIZES['new']['tick'],
+    plot_letters_fontsize=FONTSIZES['new']['figure-label'],
 ):
     if not isinstance(axes, list) and not isinstance(axes, np.ndarray):
         axes = [axes]
 
     if plot_label_x_pads:
-        annotate_plot_letters(axes, plot_label_x_pads, y_pad=plot_label_y_pad)
+        annotate_plot_letters(axes, plot_label_x_pads, y_pad=plot_label_y_pad, fontsize=plot_letters_fontsize)
 
     set_label_fontsize(axes, fontsize=axis_fontsize)
     set_ticklabel_fontsize(axes, fontsize=tick_fontsize)
