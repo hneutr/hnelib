@@ -1,4 +1,6 @@
-This is a collection of tools I use to do things.
+`hnelib`: a bunch of tools/utilities I use, mostly while doing datascience.
+
+installation: `pip install hnelib`
 
 # hnelib.runner
 

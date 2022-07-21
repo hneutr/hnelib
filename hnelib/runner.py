@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 import os
 import pandas as pd
 
-
 # TODO:
 # - allow for adding expansions at non-terminal nodes
 #   - method: add `expand_over` key, which is a dict with values:
@@ -20,12 +19,42 @@ import pandas as pd
 # - make `get_dataframe` run the item if the dataframe doesn't exist
 # - support saving of json
 
+
 class AmbiguousCollectionQuery(Exception):
     pass
 
 
 class ItemNotFound(Exception):
     pass
+
+
+class Item(object):
+    """
+    an item is an element in a collection that gets fed to a Runner.
+
+    it defines:
+    - what an element in a collection looks like: the set of keys it supports
+        - do
+        - kwargs
+        - subdirs
+        - aliases
+        - expand:
+            - directories
+            - prefixes
+            - suffixes
+    - what to do with a result
+    - how to save it
+    """
+    def __init__(self):
+        1
+
+    @property
+    def path(self):
+        1
+
+    @property
+    def save(self):
+        1
 
 
 class Runner(object):
@@ -71,7 +100,9 @@ class Runner(object):
             to result in matplotlib figures and save them after running `do`. If
             false, will not save them after running `do`.
         """
-        self.directory = directory
+        self.directory = Path(directory)
+        self.directory.mkdir(exist_ok=True, parents=True)
+
         self.collection = self.recursive_flatten_collection(collection)
         self.aliases = self.get_aliases(self.collection)
 
@@ -234,9 +265,13 @@ class Runner(object):
 
         return False
 
-    def open_path(self, path):
-        os.system(f'open "{str(path)}"')
-
+    ################################################################################
+    #
+    #
+    # expanders
+    #
+    #
+    ################################################################################
     @staticmethod
     def default_expander(name, kwargs={}):
         """
@@ -309,6 +344,17 @@ class Runner(object):
 
         return expander
 
+    @staticmethod
+    def default_dataframe_formatter(df):
+        return df.copy()
+
+    ################################################################################
+    #
+    #
+    # item result access
+    #
+    #
+    ################################################################################
     def get_result_path(self, item_name_queried, item_kwargs={}):
         """
         This function returns a path for a given item query and kwargs combination.
@@ -339,27 +385,25 @@ class Runner(object):
         path = Path(*item.get('subdirs', [])).joinpath(item_parent).joinpath(expanded_item_name)
         return path
 
-    def get_qualified_path_for_result(self, result_path, directory, suffix):
-        return directory.joinpath(result_path.parent, result_path.name + suffix)
+    def get_qualified_path_for_result(self, result_path, suffix):
+        return self.directory.joinpath(result_path.parent, result_path.name + suffix)
 
     def get_figure_path(self, item_name_queried, item_kwargs={}, suffix=None):
-        """
-        returns the path to a figure
-        """
         return self.get_qualified_path_for_result(
             result_path=self.get_result_path(item_name_queried, item_kwargs),
-            directory=self.directory,
             suffix=suffix if suffix else self.figure_suffix,
         )
 
     def get_dataframe_path(self, item_name_queried, item_kwargs={}, suffix=None):
-        """
-        returns the path to a dataframe
-        """
         return self.get_qualified_path_for_result(
             result_path=self.get_result_path(item_name_queried, item_kwargs),
-            directory=self.directory,
             suffix=suffix if suffix else self.df_suffix,
+        )
+
+    def get_json_path(self, item_name_queried, item_kwargs={}):
+        return self.get_qualified_path_for_result(
+            result_path=self.get_result_path(item_name_queried, item_kwargs),
+            suffix='.json',
         )
 
     def get_dataframe(self, *args, **kwargs):
@@ -375,16 +419,6 @@ class Runner(object):
     def get_df(self, *args, **kwargs):
         return self.get_dataframe(*args, **kwargs)
 
-    def get_json_path(self, item_name_queried, item_kwargs={}):
-        """
-        returns the path to a json file
-        """
-        return self.get_qualified_path_for_result(
-            result_path=self.get_result_path(item_name_queried, item_kwargs),
-            directory=self.directory,
-            suffix='.json',
-        )
-
     def get_json(self, *args, **kwargs):
         path = self.get_json_path(*args, **kwargs)
 
@@ -395,10 +429,13 @@ class Runner(object):
 
         return json.loads(path.read_text())
 
-    @staticmethod
-    def default_dataframe_formatter(df):
-        return df.copy()
-
+    ################################################################################
+    #
+    #
+    # running
+    #
+    #
+    ################################################################################
     def run_all(self, **kwargs):
         for item in self.collection:
             print(item)
@@ -443,6 +480,7 @@ class Runner(object):
 
             if isinstance(result, pd.DataFrame) or item.get('save_df'):
                 df = item.get('df_formatter', self.default_dataframe_formatter)(result)
+
                 self.save_dataframe(
                     df,
                     path,
@@ -480,28 +518,13 @@ class Runner(object):
 
         return item_name, to_run
 
-    def save_plot(self, name, directory, show=False, suffix=None, dpi=400):
-        path = directory.joinpath(name).with_suffix(suffix if suffix else self.figure_suffix)
-        path.parent.mkdir(exist_ok=True, parents=True)
-        path = str(path)
-
-        plt.savefig(path, dpi=dpi, bbox_inches='tight')
-        plt.clf()
-        plt.close()
-
-        if show:
-            os.system(f'open "{path}"')
-
-    def save_dataframe(self, df, name, directory, suffix=None):
-        path = directory.joinpath(name).with_suffix(suffix if suffix else self.df_suffix)
-        path.parent.mkdir(exist_ok=True, parents=True)
-        df.to_csv(path, index=False)
-
-    def save_json(self, thing, name, directory):
-        path = directory.joinpath(name).with_suffix('.json')
-        path.parent.mkdir(exist_ok=True, parents=True)
-        path.write_text(json.dumps(thing, indent=4, sort_keys=True))
-
+    ################################################################################
+    #
+    #
+    # cleaning (I think this doesn't work right now)
+    #
+    #
+    ################################################################################
     def clean(self):
         """
         removes files in the base directories that are not part of the
@@ -539,3 +562,32 @@ class Runner(object):
             parent = path.parent
             if parent.is_dir() and not len(list(parent.glob('*'))):
                 parent.rmdir()
+
+    ################################################################################
+    #
+    #
+    # saving
+    #
+    #
+    ################################################################################
+    def save_plot(self, name, directory, show=False, suffix=None, dpi=400):
+        path = directory.joinpath(name).with_suffix(suffix if suffix else self.figure_suffix)
+        path.parent.mkdir(exist_ok=True, parents=True)
+        path = str(path)
+
+        plt.savefig(path, dpi=dpi, bbox_inches='tight')
+        plt.clf()
+        plt.close()
+
+        if show:
+            os.system(f'open "{path}"')
+
+    def save_dataframe(self, df, name, directory, suffix=None):
+        path = directory.joinpath(name).with_suffix(suffix if suffix else self.df_suffix)
+        path.parent.mkdir(exist_ok=True, parents=True)
+        df.to_csv(path, index=False)
+
+    def save_json(self, thing, name, directory):
+        path = directory.joinpath(name).with_suffix('.json')
+        path.parent.mkdir(exist_ok=True, parents=True)
+        path.write_text(json.dumps(thing, indent=4, sort_keys=True))

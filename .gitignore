@@ -5,3 +5,4 @@ env
 .eggs
 hnelib.egg-info
 tests/results
+results

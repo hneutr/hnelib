@@ -21,7 +21,7 @@ def read_requirements(filename):
 setup(
     name="hnelib",
     packages=list(find_packages('.')),
-    version="0.0.1",
+    version="0.0.2",
     author="Hunter Wapman",
     author_email="hunter.wapman@gmail.com",
     description="python utils hunter finds useful.",
