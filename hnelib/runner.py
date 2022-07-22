@@ -28,35 +28,6 @@ class ItemNotFound(Exception):
     pass
 
 
-class Item(object):
-    """
-    an item is an element in a collection that gets fed to a Runner.
-
-    it defines:
-    - what an element in a collection looks like: the set of keys it supports
-        - do
-        - kwargs
-        - subdirs
-        - aliases
-        - expand:
-            - directories
-            - prefixes
-            - suffixes
-    - what to do with a result
-    - how to save it
-    """
-    def __init__(self):
-        1
-
-    @property
-    def path(self):
-        1
-
-    @property
-    def save(self):
-        1
-
-
 class Runner(object):
     DEFAULTS = {
         'df_suffix': '.gz',
