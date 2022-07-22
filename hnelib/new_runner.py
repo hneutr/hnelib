@@ -1,4 +1,5 @@
 from pathlib import Path
+from functools import cached_property
 from collections import defaultdict
 import copy
 import inspect
@@ -29,44 +30,36 @@ class ItemNotFound(Exception):
     pass
 
 
-class Instance(object):
+class Expansion(object):
     """
-    an Instance is an instantiation of an Item — basically, a single expansion
+    an Expansion is an instantiation of an Item — basically, a single expansion
     """
-    def __init__(self, item, **kwargs):
+    def __init__(self, item, kwargs):
         self.item = item
-        self.kwargs = self.sanitize_kwargs(kwargs)
+        self.kwargs = kwargs
 
-    @property
+    @cached_property
     def path(self):
-        1
+        expansion_composition = self.item.get_expansion_composition(self.kwargs)
 
-    @classmethod
-    def sanitize_kwargs_for_do_function(cls, val):
-        """
-        removes kwargs that will cause an error of the function
-        """
-        kwargs = val.pop('kwargs', {})
+        stem_components = expansion_composition['prefixes']
+        stem_components += [self.item.name]
+        stem_components += expansion_composition['suffixes']
 
-        do = val['do']
+        stem = "-".join([str(s) for s in stem_components])
 
-        if callable(do):
-            kwargs = cls.sanitize_function_kwargs(do, kwargs)
+        directories = [str(d) for d in expansion_composition['directories']]
+        directories += self.item.subdirs
 
-        if len(kwargs):
-            val['kwargs'] = kwargs
+        return Path(*directories).joinpath(stem)
 
-        return val
+    def save(self, result, directory, suffix=None, **kwargs):
+        suffix = suffix if suffix else self.item.SUFFIXES[0]
 
-    # @classmethod
-    # def sanitize_function_kwargs(cls, function, function_kwargs):
-    #     (_args, _varargs, _kwargs, _, _, _, _) = inspect.getfullargspec(function)
+        path = directory.joinpath(self.item.directory, self.path).with_suffix(suffix)
+        path.parent.mkdir(exist_ok=True, parents=True)
 
-    #     # sanitize args if the function only has static arguments
-    #     if _varargs is None and _kwargs is None:
-    #         function_kwargs = {k: v for k, v in function_kwargs.items() if k in _args}
-
-    #     return function_kwargs
+        self.item.save(result, path, **kwargs)
 
     @property
     def run(self):
@@ -87,11 +80,9 @@ class Item(object):
     CONFIG_DEFAULTS = {
         'path_components': [],
         'kwargs': {},
-        'expand_over': {
-            'directories': {},
-            'prefixes': {},
-            'suffixes': {},
-        },
+        'directory_expansions': {},
+        'prefix_expansions': {},
+        'suffix_expansions': {},
         'item_type': None,
     }
 
@@ -104,11 +95,12 @@ class Item(object):
     ALL_CONFIG_DEFAULTS = {**CONFIG_DEFAULTS, **LEAF_CONFIG_DEFAULTS}
 
     def __init__(self, **kwargs):
-        for key, val in self.ALL_CONFIG_DEFAULTS.items():
-            if key == 'expand_over':
-                kwargs[key] = self.merge_expand_over_content(val, kwargs.get(key, {}))
+        for key, default in self.ALL_CONFIG_DEFAULTS.items():
+            val = kwargs.get(key, default)
+            setattr(self, key, copy.deepcopy(val))
 
-            setattr(self, key, kwargs.get(key, val))
+        self.sanitize_do_arguments()
+        self.filter_expansions()
 
     def __eq__(self, other):
         conditions = []
@@ -150,12 +142,8 @@ class Item(object):
 
         config['item_type'] = collection.get('item_type', config.get('item_type'))
 
-        config['kwargs'].update(collection.get('kwargs', {}))
-
-        config['expand_over'] = cls.merge_expand_over_content(
-            config.get('expand_over', {}),
-            collection.get('expand_over', {}),
-        )
+        for key in ['kwargs', 'directory_expansions', 'prefix_expansions', 'suffix_expansions']:
+            config[key].update(collection.get(key, {}))
 
         config.update({k: v for k, v in collection.items() if k in config['item_type'].LEAF_CONFIG_DEFAULTS})
 
@@ -168,56 +156,183 @@ class Item(object):
         """
         new_config = {}
         for key, default in cls.CONFIG_DEFAULTS.items():
-            if key == 'expand_over':
-                new_config[key] = cls.merge_expand_over_content(default, config.get(key, {}))
-            else:
-                new_config[key] = config.get(key, default)
+            val = config.get(key, default)
+            new_config[key] = copy.deepcopy(val)
 
         return new_config
-
-    @classmethod
-    def merge_expand_over_content(cls, old, new):
-        merged = cls.CONFIG_DEFAULTS['expand_over']
-
-        for key in merged:
-            for e in [old, new]:
-                merged[key].update(e.get(key, {}))
-
-        return merged
 
     @classmethod
     def from_config(cls, config):
         item_type = config.pop('item_type')
         return item_type(**config)
 
-    @property
-    def path(self):
-        1
+    def sanitize_do_arguments(self):
+        (_args, _varargs, _kwargs, _, _, _, _) = inspect.getfullargspec(self.do)
+
+        # don't sanitize args if the function has dynamic arguments
+        if _varargs or _kwargs:
+            return
+
+        for arg_store_name in ['kwargs', 'directory_expansions', 'prefix_expansions', 'suffix_expansions']:
+            arg_store = getattr(self, arg_store_name)
+            arg_store = {k: v for k, v in arg_store.items() if k in _args}
+            setattr(self, arg_store_name, arg_store)
+
+    def filter_expansions(self):
+        """
+        get rid of expansions that are in conflict with `kwargs`
+        """
+        for arg_store_name in ['directory_expansions', 'prefix_expansions', 'suffix_expansions']:
+            arg_store = getattr(self, arg_store_name)
+
+            for key, val in self.kwargs.items():
+                if key in arg_store:
+                    arg_store[key] = [val]
+
+            setattr(self, arg_store_name, arg_store)
+
+        self.expansion_keys_by_type = {
+            'directories': list(self.directory_expansions.keys()),
+            'prefixes': list(self.prefix_expansions.keys()),
+            'suffixes': list(self.suffix_expansions.keys()),
+        }
 
     @property
-    def save(self):
-        1
+    def location(self):
+        return "/".join(self.path_components)
 
     @property
+    def name(self):
+        return self.path_components[-1]
+
+    @property
+    def collection(self):
+        return self.path_components[:-1]
+
+    @property
+    def directory(self):
+        return Path(*self.collection)
+
+    def get_expansion_composition(self, kwargs):
+        # go in expansion order (rather than kwargs order) because then output is always predictable
+        expansion_composition = defaultdict(list)
+        for expansion_type, keys in expansion_keys_by_type.items():
+            for key in [key for key in keys if key in kwargs]:
+                expansion_composition[expansion_type].append(kwargs[key])
+
+        return expansion_composition
+
+    @cached_property
     def expansions(self):
-        1
+        all_options = {**keys for keys in self.expansion_keys_by_type}
 
-    @property
-    def collections(self):
-        1
+        expansions = []
+        for option_set in itertools.product(*list(all_options.values())):
+            kwargs = copy.deepcopy(self.kwargs)
 
-    def matches_query(self, query):
-        1
+            index = 0
+            for keys in self.expansion_keys_by_type.values():
+                kwargs.update({k: option_set[index + i] for i, k in enumerate(keys)})
+                index += len(keys)
 
-    def matches_collection_query(self, query):
-        1
+            expansions.append(Expansion(item=self, kwargs=kwargs))
 
-    def get_instance(**kwargs):
-        1
+        return expansions
+
+    def get_matching_expansions(self, kwargs):
+        matching_expansions = []
+        for expansion in self.expansions:
+            if all([expansion.kwargs[k] == v for k, v in kwargs.items()]):
+                matching_expansions.append(expansion)
+
+        return matching_expansions
+
+    @staticmethod
+    def parse_query(query):
+        return query.split('/')
+
+    def query_matches(self, query):
+        """
+        There are several ways to match a query:
+        1. exact: the full path to 
+
+        1. path
+        2. name
+
+        how did things match?
+        - partial
+        - complete
+
+        for partial matches, where?
+        - start
+        - end
+
+        returns a dict:
+        {
+            'full': True/False
+            'name': "complete"/"start"/"mismatch",
+            'collection': "complete"/"start"/"partial"/"mismatch",
+        }
+        """
+        parsed_query = self.parse_query(query)
+        qname = parsed_query[-1]
+        qcollection = parsed_query[:-1]
+
+        return {
+            'full': "/".join(self.path_components) == query,
+            'name': self.query_matches_name(qname),
+            'collection': self.query_matches_collection(qcollection, parse=False)
+        }
+
+    def query_matches_name(self, query):
+        if self.name == query:
+            return "complete"
+        elif self.name.startswith(query):
+            return "start"
+        else:
+            return "mismatch"
+
+    def query_matches_collection(self, query, parse=True):
+        if parse:
+            query = self.parsed_query(query)
+
+        if self.query_matches_collection_exactly(query):
+            if len(query) == len(self.collection):
+                return "complete"
+            else:
+                return "start"
+        elif recursive_query_matches_collection(query, self.collection):
+            return "partial"
+        else:
+            return "mismatch"
+
+    def query_matches_collection_exactly(self, query):
+        return all([q == c for q, c in zip(query, self.collection)])
+
+    @staticmethod
+    def recursive_query_matches_collection(query, collection):
+        if not collection:
+            return True
+
+        for i, query_part in enumerate(query):
+            if collection[0].startswith(query_part):
+                return Item.recursive_query_matches_collection(query[i + 1:], collection[1:])
+
+        return False
 
 
 class PlotItem(Item):
     SUFFIXES = ['.png', '.pdf']
+
+    def save(self, result, path, show=False, dpi=400):
+        path = str(path)
+
+        plt.savefig(path, dpi=dpi, bbox_inches='tight')
+        plt.clf()
+        plt.close()
+
+        if show:
+            os.system(f'open "{path}"')
 
 
 class DataFrameItem(Item):
@@ -230,18 +345,18 @@ class DataFrameItem(Item):
 
     ALL_CONFIG_DEFAULTS = {**Item.CONFIG_DEFAULTS, **LEAF_CONFIG_DEFAULTS}
 
+    def save(self, result, path):
+        result.to_csv(path, index=False)
+
 
 class JSONItem(Item):
     SUFFIXES = ['.json']
 
+    def save(self, result, path):
+       path.write_text(json.dumps(result, indent=4, sort_keys=True))
+
 
 class Runner(object):
-    ITEM_TYPES = [
-        PlotItem,
-        DataFrameItem,
-        JSONItem,
-    ]
-
     def __init__(
         self,
         collection={},
@@ -253,7 +368,7 @@ class Runner(object):
 
         self.default_item_type = default_item_type
 
-        self.collection = self.parse_collection(
+        self.items = self.parse_collection(
             collection=collection,
             parent_config={
                 'path_components': [],
@@ -286,243 +401,105 @@ class Runner(object):
 
         return items
 
+    def get_item(self, query):
+        """
+        we want to be as generous as possible when responding to names, because
+        sometimes we won't always want to fully specify a name.
 
-    #@classmethod
-    #def recursive_flatten_collection(cls, collection):
-    #    """
-    #    takes a nested dictionary like:
-    #    {
-    #        'directory': {
-    #            'item_1': {
-    #                'do': function_1,
-    #            },
-    #            'item_2': {
-    #                'do': function_2,
-    #            },
-    #        },
-    #    }
+        any time we can get a single match, we should return that match.
 
-    #    and turns it into a flat dictionary like:
-    #    {
-    #        'directory/item_1': {
-    #            'do': function_1,
-    #        },
-    #        'directory/item_2': {
-    #            'do': function_2,
-    #        },
-    #    }
+        Let's always assume that the last part is the "stem" (in pathlib terminology).
 
-    #    if there are kwargs applied at the containing layers, they will be
-    #    applied to the inner ones
-    #    """
-    #    flat_collection = {}
+        I could see calling this in multiple ways:
+        1. /[first letter of first dir]/[second letter of second dir]/name
+        """
+        results = [(i, i.query_matches(query)) for i in self.items]
 
-    #    kwargs = collection.pop('kwargs', {})
+        full_matches = [i for i, result in results if i['full']]
 
-    #    for item, val in collection.items():
-    #        if callable(val):
-    #            val = {'do': val}
+        if len(full_matches) == 1:
+            return full_matches[0]
+        else:
+            print("this shouldn't happen")
+            raise AmbiguousCollectionQuery
+            
+        name_matches = [r for r in results if r[1]['name'] == 'complete']
 
-    #        val['kwargs'] = {
-    #            **kwargs,
-    #            **val.get('kwargs', {})
-    #        }
+        if len(name_matches) == 1:
+            return name_matches[0][0]
+        else:
+            results = name_matches
 
-    #        if 'do' in val:
-    #            flat_collection[item] = cls.sanitize_kwargs_for_do_function(val)
-    #        else:
-    #            sub_items = Runner.recursive_flatten_collection(val)
-    #            flat_collection.update({f"{item}/{key}": subval for key, subval in sub_items.items()})
+        for status in ["complete", "start", "partial"]:
+            status_results = [r for r in results if r[1]['collection'] == status]
 
-    #    return flat_collection
+            if len(status_results) == 1:
+                return status_results[0][0]
 
-    #@classmethod
-    #def sanitize_kwargs_for_do_function(cls, val):
-    #    """
-    #    removes kwargs that will cause an error of the function
-    #    """
-    #    kwargs = val.pop('kwargs', {})
+        raise AmbiguousCollectionQuery
 
-    #    do = val['do']
+    def get_items_in_collection(self, query):
+        """
+        we require a full "start" match for collection queries
+        """
+        results = []
+        for item in self.items:
+            if item.query_matches_collection(query) in ['complete', 'start']:
+                results.append(item)
 
-    #    if callable(do):
-    #        kwargs = cls.sanitize_function_kwargs(do, kwargs)
+        return results
 
-    #    if len(kwargs):
-    #        val['kwargs'] = kwargs
+    ################################################################################
+    #
+    #
+    # running
+    #
+    #
+    ################################################################################
+    def run_all(self, **kwargs):
+        for item in self.items:
+            print(item.location)
+            self.run_item(
+                item=item,
+                run_expansions=True,
+                **kwargs
+            )
 
-    #    return val
+    def run_subcollection(self, query, run_expansions=True, **kwargs):
+        for item in self.get_items_in_collection(query):
+            print(item.location)
+            self.run_item(
+                item=item,
+                run_expansions=run_expansions,
+                **kwargs
+            )
 
-    #@classmethod
-    #def sanitize_function_kwargs(cls, function, function_kwargs):
-    #    (_args, _varargs, _kwargs, _, _, _, _) = inspect.getfullargspec(function)
+    def run(
+        self,
+        query,
+        **kwargs,
+    ):
+        item = self.get_item(query)
+        self.run_item(item, **kwargs)
 
-    #    # sanitize args if the function only has static arguments
-    #    if _varargs is None and _kwargs is None:
-    #        function_kwargs = {k: v for k, v in function_kwargs.items() if k in _args}
+    def run_item(
+        self,
+        item,
+        save_kwargs={},
+        run_expansions=False,
+        **kwargs,
+    ):
+        expansions = item.get_matching_expansions(**kwargs)
 
-    #    return function_kwargs
+        if not run_expansions:
+            expansions = [:1]
 
-    #def get_aliases(self, collection):
-    #    aliases = {}
-    #    for key, val in collection.items():
-    #        if 'alias' in val:
-    #            aliases[val['alias']] = key
-
-    #    return aliases
-
-    #def get_item(self, string):
-    #    """
-    #    we want to be as generous as possible when responding to names, because
-    #    sometimes we won't always want to fully specify a name.
-
-    #    any time we can get a single match, we should return that match.
-
-    #    Let's always assume that the last part is the "stem" (in pathlib terminology).
-
-    #    I could see calling this in multiple ways:
-    #    1. /[first letter of first dir]/[second letter of second dir]/name
-    #    """
-    #    if string in self.collection:
-    #        # if we find an exact match, use it
-    #        return string
-    #    elif string in self.aliases:
-    #        # if we find an exact alias match, use it
-    #        return self.aliases[string]
-
-    #    *string_parents, string_stem = string.split('/')
-
-    #    candidates = {}
-    #    for candidate in self.collection:
-    #        *candidate_parents, candidate_stem = candidate.split('/')
-
-    #        if candidate_stem == string_stem:
-    #            # if we get a search string with 3 path segments
-    #            # ('/1/2/3/stem'), then we can reject candidates with fewer than
-    #            # 3 path segments ('/1/2/stem')
-    #            if len(string_parents) <= len(candidate_parents):
-    #                candidates[candidate] = candidate_parents
-
-    #    # If we find only one "stem" match, that's our match
-    #    if len(candidates) == 1:
-    #        return list(candidates.keys())[0]
-
-    #    # if we have more than one "stem" match, try to use the pre-stem parts
-    #    # to find a single match.
-    #    #
-    #    # We're going to be greedy here and try to 'startswith' match these
-    #    # strings.
-    #    #
-    #    # we don't require things to be consecutive
-    #    path_matched_candidates = []
-    #    for candidate, candidate_parents in candidates.items():
-    #        if self.recursive_path_parents_match(string_parents, candidate_parents):
-    #            path_matched_candidates.append(candidate)
-
-    #    if not path_matched_candidates:
-    #        raise ItemNotFound
-    #    elif len(path_matched_candidates) == 1:
-    #        return path_matched_candidates[0]
-    #    else:
-    #        print('could not choose between:')
-    #        for candidate in sorted(path_matched_candidates):
-    #            print(f"\t{candidate}")
-
-    #        raise AmbiguousCollectionQuery
-
-    #@staticmethod
-    #def recursive_path_parents_match(parents, candidate_parents):
-    #    if not candidate_parents:
-    #        return True
-
-    #    for i, parent in enumerate(parents):
-    #        if candidate_parents[0].startswith(parent):
-    #            return Runner.recursive_path_parents_match(parents[i + 1:], candidate_parents[1:])
-
-    #    return False
-
-    #################################################################################
-    ##
-    ##
-    ## expanders
-    ##
-    ##
-    #################################################################################
-    #@staticmethod
-    #def default_expander(name, kwargs={}):
-    #    """
-    #    the default expander doesn't do anything, but in general, an expander
-    #    takes a (name, kwargs) tuple and generates expansions from it.
-    #    """
-    #    return [(name, kwargs)]
-
-    #@staticmethod
-    #def get_expander(prefixes={}, suffixes={}, directories={}):
-    #    """
-    #    TODO:
-    #    - change `name_options` to `suffixes`
-    #    - add `prefixes`
-    #    - change `directory_options` to `directories`
-
-
-    #    name_options: a dictionary of lists. These will be appended to the name of the plot
-    #        - keys: arguments to the function
-    #        - values: a list of arguments to expand
-    #    directory_options: a dictionary of lists. These will be turned into
-    #    directories to put the plot in
-    #        - keys: arguments to the function
-    #        - values: a list of arguments to expand
-    #    """
-    #    prefix_keys = list(prefixes.keys())
-    #    suffix_keys = list(suffixes.keys())
-    #    directory_keys = list(directories.keys())
-
-    #    all_options = {
-    #        **prefixes,
-    #        **suffixes,
-    #        **directories,
-    #    }
-
-    #    def expander(name, kwargs={}):
-    #        expansions = []
-    #        for option_set in itertools.product(*list(all_options.values())):
-    #            expansion_kwargs = copy.deepcopy(kwargs)
-
-    #            index = 0
-
-    #            prefix_kwargs = {k: option_set[index + i] for i, k in enumerate(prefix_keys)}
-    #            index += len(prefixes)
-
-    #            suffix_kwargs = {k: option_set[index + i] for i, k in enumerate(suffix_keys)}
-    #            index += len(suffixes)
-
-    #            directory_kwargs = {k: option_set[index + i] for i, k in enumerate(directory_keys)}
-
-    #            expansion_kwargs.update(prefix_kwargs)
-    #            expansion_kwargs.update(suffix_kwargs)
-    #            expansion_kwargs.update(directory_kwargs)
-
-    #            # Here's where we filter to the requested kwargs and don't
-    #            # generate expansions that contradict the supplied kwargs
-    #            if any([v for k, v in expansion_kwargs.items() if k in kwargs and kwargs[k] != v]):
-    #                continue
-
-    #            stem_components = list(prefix_kwargs.values()) + [name] + list(suffix_kwargs.values())
-    #            stem = "-".join([str(c) for c in stem_components])
-
-    #            directories = [str(d) for d in list(directory_kwargs.values())]
-
-    #            expansion_name = Path(*directories).joinpath(stem)
-
-    #            expansions.append((expansion_name, expansion_kwargs))
-
-    #        return expansions
-
-    #    return expander
-
-    #@staticmethod
-    #def default_dataframe_formatter(df):
-    #    return df.copy()
+        for expansions in expansions:
+            expansion.save(
+                result=item.do(**expansion.kwargs),
+                directory=self.directory,
+                **save_kwargs,
+            )
 
     #################################################################################
     ##
@@ -608,95 +585,6 @@ class Runner(object):
     #################################################################################
     ##
     ##
-    ## running
-    ##
-    ##
-    #################################################################################
-    #def run_all(self, **kwargs):
-    #    for item in self.collection:
-    #        print(item)
-    #        self.run(item, run_expansions=True, **kwargs)
-
-    #def run_subcollection(self, query_string, run_expansions=True, **kwargs):
-    #    """
-    #    """
-    #    item_names = [c for c in self.collection if c.startswith(query_string)]
-    #    for item_name in item_names:
-    #        print(item_name)
-    #        self.run(item_name_queried=item_name, run_expansions=run_expansions, **kwargs)
-
-    #def run(
-    #    self,
-    #    item_name_queried,
-    #    show=False,
-    #    item_kwargs={},
-    #    run_expansions=False,
-    #    save_plot_kwargs={},
-    #    save_dataframe_kwargs={},
-    #):
-    #    item_name, to_run = self.get_items_to_run(item_name_queried, item_kwargs, run_expansions)
-
-    #    item = self.collection[item_name]
-    #    item_parent = Path(item_name).parent
-
-    #    for item_name, item_kwargs in to_run:
-    #        path = Path(*item.get('subdirs', [])).joinpath(item_parent).joinpath(item_name)
-
-    #        item_kwargs = self.sanitize_function_kwargs(item['do'], item_kwargs)
-
-    #        result = item['do'](**item_kwargs)
-
-    #        if item.get('save_plot', True) and self.save_plots:
-    #            self.save_plot(
-    #                path,
-    #                show=show,
-    #                directory=self.directory,
-    #                **save_plot_kwargs,
-    #            )
-
-    #        if isinstance(result, pd.DataFrame) or item.get('save_df'):
-    #            df = item.get('df_formatter', self.default_dataframe_formatter)(result)
-
-    #            self.save_dataframe(
-    #                df,
-    #                path,
-    #                directory=self.directory,
-    #                **save_dataframe_kwargs,
-    #            )
-    #        elif result != None:
-    #            try:
-    #                self.save_json(
-    #                    result,
-    #                    path,
-    #                    directory=self.directory,
-    #                )
-    #            except TypeError:
-    #                pass
-
-    #def get_items_to_run(
-    #    self,
-    #    item_name_queried,
-    #    item_kwargs={},
-    #    run_expansions=False,
-    #):
-    #    item_name = self.get_item(item_name_queried)
-    #    item = self.collection[item_name]
-    #    item_kwargs = {
-    #        **item.get('kwargs', {}),
-    #        **item_kwargs,
-    #    }
-
-    #    item_path = Path(item_name)
-
-    #    to_run = item.get('expander', self.default_expander)(item_path.stem, item_kwargs)
-    #    if not run_expansions:
-    #        to_run = to_run[:1]
-
-    #    return item_name, to_run
-
-    #################################################################################
-    ##
-    ##
     ## cleaning (I think this doesn't work right now)
     ##
     ##
@@ -738,33 +626,3 @@ class Runner(object):
     #        parent = path.parent
     #        if parent.is_dir() and not len(list(parent.glob('*'))):
     #            parent.rmdir()
-
-    #################################################################################
-    ##
-    ##
-    ## saving
-    ##
-    ##
-    #################################################################################
-    #def save_plot(self, name, directory, show=False, suffix=None, dpi=400):
-    #    path = directory.joinpath(name).with_suffix(suffix if suffix else self.figure_suffix)
-    #    path.parent.mkdir(exist_ok=True, parents=True)
-    #    path = str(path)
-
-    #    plt.savefig(path, dpi=dpi, bbox_inches='tight')
-    #    plt.clf()
-    #    plt.close()
-
-    #    if show:
-    #        os.system(f'open "{path}"')
-
-    #def save_dataframe(self, df, name, directory, suffix=None):
-    #    path = directory.joinpath(name).with_suffix(suffix if suffix else self.df_suffix)
-    #    path.parent.mkdir(exist_ok=True, parents=True)
-    #    df.to_csv(path, index=False)
-
-    #def save_json(self, thing, name, directory):
-    #    path = directory.joinpath(name).with_suffix('.json')
-    #    path.parent.mkdir(exist_ok=True, parents=True)
-    #    path.write_text(json.dumps(thing, indent=4, sort_keys=True))
-
