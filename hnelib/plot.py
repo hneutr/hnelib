@@ -29,25 +29,40 @@ DIMENSIONS = {
 
 
 FONTSIZES = {
-    'axis': 13,
-    'tick': 11,
-    'annotation': 7,
-    'annotation-ml': 8,
-    'annotation-l': 9,
-    'annotation-xl': 10,
-    'figure-label': 18,
-    'new': {
-        'axis': 7,
-        'tick': 6,
-        'annotation': 5,
-        'annotation-ml': 6,
-        'annotation-l': 7,
-        'annotation-xl': 8,
-        'figure-label': 11,
-        'title': 9,
-        'legend': 6,
-    },
+    'small': 5,
+    'medium': 6,
+    'large': 7,
+    'huge': 8,
 }
+
+
+FONTSIZES['axis'] = FONTSIZES['large']
+FONTSIZES['tick'] = FONTSIZES['medium']
+FONTSIZES['annotation'] = FONTSIZES['small']
+FONTSIZES['title'] = FONTSIZES['huge']
+FONTSIZES['legend'] = FONTSIZES['medium']
+FONTSIZES['subplot-label'] = FONTSIZES['huge']
+
+# FONTSIZES = {
+#     'axis': 13,
+#     'tick': 11,
+#     'annotation': 7,
+#     'annotation-ml': 8,
+#     'annotation-l': 9,
+#     'annotation-xl': 10,
+#     'figure-label': 18,
+#     'new': {
+#         'axis': 7,
+#         'tick': 6,
+#         'annotation': 5,
+#         'annotation-ml': 6,
+#         'annotation-l': 7,
+#         'annotation-xl': 8,
+#         'figure-label': 11,
+#         'title': 9,
+#         'legend': 6,
+#     },
+# }
 
 
 BASIC_ARROW_PROPS = {
@@ -293,7 +308,14 @@ def plot_disconnected_scatter(ax, df, x_column, y_column, color, s=4, lw=1.5):
     )
 
 
-def annotate_plot_letters(axes, x_pads, y_pad=1.15, fontsize=FONTSIZES['new']['figure-label'], labels=[], horizontal_alignments=[]):
+def annotate_plot_letters(
+    axes,
+    x_pads,
+    y_pad=1.15,
+    fontsize=FONTSIZES['subplot-label'],
+    labels=[],
+    horizontal_alignments=[],
+):
     import string
 
     if not horizontal_alignments:
@@ -306,7 +328,7 @@ def annotate_plot_letters(axes, x_pads, y_pad=1.15, fontsize=FONTSIZES['new']['f
         ax.text(
             x_pad,
             y_pad,
-            label,
+            label.lower(),
             transform=ax.transAxes,
             fontname='Arial',
             fontsize=fontsize,
@@ -338,9 +360,9 @@ def finalize(
     axes,
     plot_label_x_pads=[],
     plot_label_y_pad=1.15,
-    axis_fontsize=FONTSIZES['new']['axis'],
-    tick_fontsize=FONTSIZES['new']['tick'],
-    plot_letters_fontsize=FONTSIZES['new']['figure-label'],
+    axis_fontsize=FONTSIZES['axis'],
+    tick_fontsize=FONTSIZES['tick'],
+    plot_letters_fontsize=FONTSIZES['subplot-label'],
 ):
     if not isinstance(axes, list) and not isinstance(axes, np.ndarray):
         axes = [axes]
