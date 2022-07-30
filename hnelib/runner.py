@@ -30,32 +30,46 @@ class ExpansionNotFound(Exception):
 
 
 class Expansion(object):
+    SHORT_NAME = 'expansion'
+
     """
     an Expansion is an instantiation of an Item — basically, a single expansion
     """
-    def __init__(self, item, do, kwargs, suffix=None):
+    def __init__(self, item, do, kwargs):
         self.item = item
         self.do = do
         self.kwargs = kwargs
-        self.suffix = suffix or self.SUFFIXES[0]
 
     def __repr__(self):
         return f"Expansion: {str(self.path).replace(str(self.item.results_dir) + '/', '')}"
 
+    @cached_property
+    def name(self):
+        # iterate over expansions (rather than kwargs) so order is consistent
+        parts = [self.kwargs[k] for k in self.item.prefix_expansions if k in self.kwargs]
+
+        if not self.item.as_directory:
+            parts.append(self.item.name)
+
+        # iterate over expansions (rather than kwargs) so order is consistent
+        parts += [self.kwargs[k] for k in self.item.suffix_expansions if k in self.kwargs]
+
+        return "-".join([str(p) for p in parts]) or '-'
+
+    @cached_property
+    def directory(self):
+        # iterate over expansions (rather than kwargs) so order is consistent
+        parts = [self.kwargs[k] for k in self.item.directory_expansions if k in self.kwargs]
+        parts += self.item.subdirs
+
+        if self.item.as_directory:
+            parts.append(self.item.name)
+
+        return self.item.directory.joinpath(*[str(p) for p in parts])
+
     @property
     def path(self):
-        expansion_composition = self.item.get_expansion_composition(self.kwargs)
-
-        stem_components = expansion_composition['prefixes']
-        stem_components += [self.item.name]
-        stem_components += expansion_composition['suffixes']
-
-        stem = "-".join([str(s) for s in stem_components])
-
-        directories = [str(d) for d in expansion_composition['directories']]
-        directories += self.item.subdirs
-
-        return self.item.directory.joinpath(*directories, stem).with_suffix(self.suffix)
+        return self.directory.joinpath(self.name).with_suffix(self.item.suffix)
 
     def run(self, save_kwargs={}, **kwargs):
         result = self.do(**{
@@ -75,7 +89,8 @@ class Expansion(object):
         self.path.parent.mkdir(exist_ok=True, parents=True)
 
 class PlotExpansion(Expansion):
-    SUFFIXES = ['.pdf', '.png', '.eps']
+    SHORT_NAME = 'plot'
+    SUFFIXES = ['.png', '.pdf', '.eps']
 
     def save(self, result, dpi=400, bbox_inches='tight'):
         self.path.parent.mkdir(exist_ok=True, parents=True)
@@ -90,6 +105,7 @@ class PlotExpansion(Expansion):
 
 
 class DataFrameExpansion(Expansion):
+    SHORT_NAME = 'df'
     SUFFIXES = ['.gz', '.csv']
 
     @property
@@ -102,6 +118,7 @@ class DataFrameExpansion(Expansion):
 
 
 class JSONExpansion(Expansion):
+    SHORT_NAME = 'json'
     SUFFIXES = ['.json']
 
     @property
@@ -138,6 +155,7 @@ class Item(object):
         'do': lambda: None,
         'subdirs': [],
         'aliases': [],
+        'as_directory': False,
     }
 
     ALL_CONFIG_DEFAULTS = {**CONFIG_DEFAULTS, **LEAF_CONFIG_DEFAULTS}
@@ -148,6 +166,8 @@ class Item(object):
             setattr(self, key, copy.deepcopy(val))
 
         self.expansion_type = kwargs.get('expansion_type', self.EXPANSION_TYPE)
+
+        self.set_suffix()
 
         self.sanitize_do_arguments()
         self.filter_expansions()
@@ -161,6 +181,9 @@ class Item(object):
 
     def __repr__(self):
         return f"{type(self).__name__}: {self.location}"
+
+    def set_suffix(self, suffix=None):
+        self.suffix = suffix or self.expansion_type.SUFFIXES[0]
 
     @classmethod
     def is_item(cls, config):
@@ -286,15 +309,6 @@ class Item(object):
             'suffixes': self.suffix_expansions,
         }
 
-    def get_expansion_composition(self, kwargs):
-        # go in expansion order (rather than kwargs order) because then output is always predictable
-        expansion_composition = defaultdict(list)
-        for expansion_type, keys in self.expansion_keys_by_type.items():
-            for key in [key for key in keys if key in kwargs]:
-                expansion_composition[expansion_type].append(kwargs[key])
-
-        return expansion_composition
-
     def get_expansions(self, **kwargs):
         expansions = []
         for expansion in self.expansions:
@@ -393,6 +407,12 @@ class Item(object):
 class Runner(object):
     DEFAULT_EXPANSION_TYPE = Expansion
 
+    ITEM_TYPES = [
+        PlotExpansion,
+        DataFrameExpansion,
+        JSONExpansion,
+    ]
+
     def __init__(
         self,
         collection={},
@@ -410,6 +430,21 @@ class Runner(object):
                 'results_dir': self.directory,
             },
         )
+
+        self.suffix = suffix
+        self.reset_suffixes()
+
+    def reset_suffixes(self):
+        for item in self.items:
+            suffix = self.suffix if item.expansion_type == self.DEFAULT_EXPANSION_TYPE else None
+            item.set_suffix(suffix)
+
+    def set_suffix(self, suffix, item_type_short_name=None):
+        item_type_short_name = item_type_short_name or self.DEFAULT_EXPANSION_TYPE.SHORT_NAME
+
+        for item in self.items:
+            if item.expansion_type.SHORT_NAME == item_type_short_name:
+                item.set_suffix(suffix)
 
     @classmethod
     def parse_collection(cls, collection, parent_config, path=''):
@@ -491,18 +526,17 @@ class Runner(object):
     #
     #
     ################################################################################
-    def run_all(self, save_kwargs={}, **kwargs):
+    def run_all(self, **kwargs):
         self.run_items(self.items, **kwargs)
 
-    def run_subcollection(self, query, save_kwargs={}, **kwargs):
+    def run_subcollection(self, query, **kwargs):
         self.run_items(self.get_items_in_collection(query), **kwargs)
 
-    def run_items(self, items, save_kwargs={}, **kwargs):
+    def run_items(self, items, **kwargs):
         for item in items:
             print(f"running: {item.location}")
             for expansion in item.get_expansions(**kwargs):
-                expansion.run(save_kwargs=save_kwargs, **kwargs)
-
+                expansion.run(**kwargs)
 
     def run(self, query, **kwargs):
         return self.run_item(self.get_item(query), **kwargs)
@@ -520,7 +554,7 @@ class Runner(object):
             expansions = expansions[:1]
 
         for expansion in expansions:
-            expansion.run(**kwargs)
+            expansion.run(save_kwargs=save_kwargs, **kwargs)
             result = expansion.result
 
         return result
@@ -535,7 +569,7 @@ class Runner(object):
             result = expansion.result
         else:
             print(f"running: {expansion.item.location}")
-            result = expansion.run(save_kwargs={}, **kwargs)
+            result = expansion.run(save_kwargs=save_kwargs, **kwargs)
 
         return expansion.result
 
