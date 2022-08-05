@@ -59,11 +59,13 @@ class Expansion(object):
     @cached_property
     def directory(self):
         # iterate over expansions (rather than kwargs) so order is consistent
-        parts = [self.kwargs[k] for k in self.item.directory_expansions if k in self.kwargs]
-        parts += self.item.subdirs
+        parts = []
 
         if self.item.as_directory:
             parts.append(self.item.name)
+
+        parts += [self.kwargs[k] for k in self.item.directory_expansions if k in self.kwargs]
+        parts += self.item.subdirs
 
         return self.item.directory.joinpath(*[str(p) for p in parts])
 
