@@ -31,6 +31,11 @@ class ExpansionNotFound(Exception):
 
 class Expansion(object):
     SHORT_NAME = 'expansion'
+    SUFFIXES = ['.txt']
+
+    ARG_SEP = '-'
+    LIST_VAL_SEP = '+'
+    DICT_KEY_VAL_SEP = '='
 
     """
     an Expansion is an instantiation of an Item — basically, a single expansion
@@ -54,7 +59,9 @@ class Expansion(object):
         # iterate over expansions (rather than kwargs) so order is consistent
         parts += [self.kwargs[k] for k in self.item.suffix_expansions if k in self.kwargs]
 
-        return "-".join([str(p) for p in parts]) or '-'
+        parts = [self.stringify_arg(p) for p in parts]
+
+        return self.ARG_SEP.join(parts) or self.ARG_SEP
 
     @cached_property
     def directory(self):
@@ -67,7 +74,20 @@ class Expansion(object):
         parts += [self.kwargs[k] for k in self.item.directory_expansions if k in self.kwargs]
         parts += self.item.subdirs
 
-        return self.item.directory.joinpath(*[str(p) for p in parts])
+        parts = [self.stringify_arg(p) for p in parts]
+
+        return self.item.directory.joinpath(*parts)
+
+    @classmethod
+    def stringify_arg(cls, arg):
+        if isinstance(arg, list):
+            str_arg = cls.LIST_VAL_SEP.join([str(val) for val in arg])
+        elif isinstance(arg, dict):
+            str_arg = cls.LIST_VAL_SEP.join([str(k) + cls.DICT_KEY_VAL_SEP + str(v) for k, v in arg.items()])
+        else:
+            str_arg = str(arg)
+        
+        return str_arg
 
     @property
     def path(self):
@@ -89,6 +109,7 @@ class Expansion(object):
 
     def save(self, result, **kwargs):
         self.path.parent.mkdir(exist_ok=True, parents=True)
+
 
 class PlotExpansion(Expansion):
     SHORT_NAME = 'plot'

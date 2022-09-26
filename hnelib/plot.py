@@ -43,28 +43,6 @@ FONTSIZES['title'] = FONTSIZES['huge']
 FONTSIZES['legend'] = FONTSIZES['medium']
 FONTSIZES['subplot-label'] = FONTSIZES['huge']
 
-# FONTSIZES = {
-#     'axis': 13,
-#     'tick': 11,
-#     'annotation': 7,
-#     'annotation-ml': 8,
-#     'annotation-l': 9,
-#     'annotation-xl': 10,
-#     'figure-label': 18,
-#     'new': {
-#         'axis': 7,
-#         'tick': 6,
-#         'annotation': 5,
-#         'annotation-ml': 6,
-#         'annotation-l': 7,
-#         'annotation-xl': 8,
-#         'figure-label': 11,
-#         'title': 9,
-#         'legend': 6,
-#     },
-# }
-
-
 BASIC_ARROW_PROPS = {
     'lw': .35,
     'color': COLORS['dark_gray'],

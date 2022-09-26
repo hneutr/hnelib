@@ -151,7 +151,7 @@ class TestItem:
             kwargs={'x': 1},
             directory_expansions={'y': [1, 2, 3]},
         )
-        
+       
 
         expect(actual).to(equal(expected))
 
@@ -170,5 +170,43 @@ class TestItem:
             kwargs={'x': 1},
             directory_expansions={'x': [1], 'y': [4, 5, 6]},
         )
+
+        expect(actual).to(equal(expected))
+
+    def test_handles_list_args_in_expansions(self):
+        def _zip(list1, list2):
+            return list(zip(list1, list2))
+
+        item = Item(
+            do=_zip,
+            kwargs={'list1': [1, 2]},
+            suffix_expansions={'list2': [['a', 'b'], ['c', 'd']]},
+            path_components = ['list-args-test'],
+        )
+
+        actual = [e.path for e in item.expansions]
+        expected = [
+            Item.CONFIG_DEFAULTS['results_dir'].joinpath('list-args-test-a+b.txt'),
+            Item.CONFIG_DEFAULTS['results_dir'].joinpath('list-args-test-c+d.txt'),
+        ]
+
+        expect(actual).to(equal(expected))
+
+    def test_handles_dict_args_in_expansions(self):
+        def dict_multiply(dict1, dict2):
+            return {k: v * dict2[k] for k, v in dict1.items()}
+
+        item = Item(
+            do=dict_multiply,
+            kwargs={'dict1': {'a': 1, 'b': -1}},
+            suffix_expansions={'dict2': [{'a': 2, 'b': 2}, {'a': 3, 'b': 3}]},
+            path_components = ['dict-args-test'],
+        )
+
+        actual = [e.path for e in item.expansions]
+        expected = [
+            Item.CONFIG_DEFAULTS['results_dir'].joinpath('dict-args-test-a=2+b=2.txt'),
+            Item.CONFIG_DEFAULTS['results_dir'].joinpath('dict-args-test-a=3+b=3.txt'),
+        ]
 
         expect(actual).to(equal(expected))
