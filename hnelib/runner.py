@@ -15,6 +15,7 @@ import pandas as pd
 # - in `get`, have option to rerun:
 #     - shallowly: just the item called
 #     - deeply: rerun everything it calls
+# - have boolean args convert to "{param}"/"not-{param}" in paths
 
 class AmbiguousCollectionQuery(Exception):
     pass

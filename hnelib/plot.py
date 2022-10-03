@@ -111,20 +111,32 @@ def annotate_pearson(ax, xs, ys, xy_loc=(.1, .9), annotate_kwargs={}):
         **annotate_kwargs,
     )
 
-def get_max_lims(axes):
-    xlims = list(itertools.chain.from_iterable([ax.get_xlim() for ax in axes]))
-    ylims = list(itertools.chain.from_iterable([ax.get_ylim() for ax in axes]))
-    return min(xlims), max(xlims), min(ylims), max(ylims)
+def get_max_lims(axes, lim_fn_name):
+    if not all([hasattr(ax, lim_fn_name) for ax in axes]):
+        return 0, 0
 
+    lims = list(itertools.chain.from_iterable([getattr(ax, lims_function)() for ax in axes]))
+    return min(lims), max(lims)
 
-def set_lims_to_max(axes, x=True, y=True):
-    x_min, x_max, y_min, y_max = get_max_lims(axes)
-    for ax in axes:
-        if x:
-            ax.set_xlim(x_min, x_max)
-        if y:
-            ax.set_ylim(y_min, y_max)
+def set_lim_to_max(axes, axis='x'):
+    get_fns = [getattr(ax, f'get_{axis}lim', None) for ax in axes]
 
+    if all(get_fns):
+        lims = list(itertools.chain.from_iterable([get_fn() for get_fn in get_fns]))
+        _min, _max = min(lims), max(lims)
+
+        for ax in axes:
+            getattr(ax, f'set_{axis}lim')(_min, _max)
+
+def set_lims_to_max(axes, x=True, y=True, z=True):
+    if x:
+        set_lim_to_max(axes, 'x')
+
+    if y:
+        set_lim_to_max(axes, 'y')
+
+    if z:
+        set_lim_to_max(axes, 'z')
 
 def square_axis(ax):
     x_min, x_max = ax.get_xlim()
