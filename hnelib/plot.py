@@ -111,13 +111,6 @@ def annotate_pearson(ax, xs, ys, xy_loc=(.1, .9), annotate_kwargs={}):
         **annotate_kwargs,
     )
 
-def get_max_lims(axes, lim_fn_name):
-    if not all([hasattr(ax, lim_fn_name) for ax in axes]):
-        return 0, 0
-
-    lims = list(itertools.chain.from_iterable([getattr(ax, lims_function)() for ax in axes]))
-    return min(lims), max(lims)
-
 def set_lim_to_max(axes, axis='x'):
     get_fns = [getattr(ax, f'get_{axis}lim', None) for ax in axes]
 

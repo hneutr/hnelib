@@ -27,3 +27,30 @@ def series_to_list(thing):
         thing = list(thing)
 
     return thing
+
+
+def add_ordinal_indicator(string):
+    if string.isnumeric():
+        ones_pos = int(string[0])
+
+        if ones_pos == 1:
+            indicator = "st"
+        elif ones_pos == 2:
+            indicator = "nd"
+        elif ones_pos == 3:
+            indicator = "rd"
+        else:
+            indicator = "th"
+
+        string += indicator
+    
+    return string
+
+
+def listify(thing):
+    thing = thing or []
+
+    if not isinstance(thing, list):
+        thing = [thing]
+
+    return
