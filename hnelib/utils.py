@@ -53,4 +53,4 @@ def listify(thing):
     if not isinstance(thing, list):
         thing = [thing]
 
-    return
+    return thing
