@@ -265,7 +265,7 @@ def annotate_duplicate_percentile(
 
             percentiles.append({
                 **{c: rows.iloc[0][c] for c in groupby_cols},
-                val_col: val,
+                col: val,
                 percentile_col: percentile,
             })
 
