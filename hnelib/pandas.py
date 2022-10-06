@@ -259,7 +259,7 @@ def annotate_duplicate_percentile(
 
         percentile = 0
         percentiles = []
-        for i, val in enumerate(val):
+        for i, val in enumerate(vals):
             if percentile < len(bins) and bins[percentile + 1] < i:
                 percentile += 1
 
