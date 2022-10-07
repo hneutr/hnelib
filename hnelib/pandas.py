@@ -36,6 +36,7 @@ def _clean_cols(df, original_cols, added_cols):
 
 
 def _merge_annotations(df, annotations, original_cols, added_cols, join_cols):
+    original_cols = hnelib.utils.listify(original_cols)
     added_cols = hnelib.utils.listify(added_cols)
     join_cols = hnelib.utils.listify(join_cols)
 
@@ -241,7 +242,7 @@ def correct_significance_for_multiple_tests(
 def annotate_duplicate_percentile(
     df,
     col,
-    sort_by,
+    entity_col,
     groupby_cols=GROUPBY_COLS,
     percentile_col='Percentile',
     n_bins=100,
@@ -251,30 +252,26 @@ def annotate_duplicate_percentile(
     """
     df, original_cols, groupby_cols = _get_original_and_groupby_cols(df, groupby_cols)
 
-    percentile_dfs = []
+    percentiles = []
     for _, rows in df.groupby(groupby_cols):
-        vals = list(rows.sort_values(by=sort_by)[[col]].drop_duplicates()[col])
+        entities = list(rows.sort_values(by=col)[[entity_col]].drop_duplicates()[entity_col])
 
-        bins = np.linspace(0, len(vals), min(n_bins, len(vals)) + 1)
+        bins = np.linspace(0, len(entities), min(n_bins, len(entities)) + 1)
 
         percentile = 0
-        percentiles = []
-        for i, val in enumerate(vals):
+        for i, entity in enumerate(entities):
             if percentile < len(bins) and bins[percentile + 1] < i:
                 percentile += 1
 
             percentiles.append({
-                **{c: rows.iloc[0][c] for c in groupby_cols},
-                col: val,
+                entity_col: entity,
                 percentile_col: percentile,
             })
 
-        percentile_dfs.append(pd.DataFrame(percentiles)) 
-
     return _merge_annotations(
         df=df, 
-        annotations=pd.concat(percentile_dfs),
+        annotations=pd.DataFrame(percentiles),
         original_cols=original_cols,
         added_cols=percentile_col,
-        join_cols=[col] + groupby_cols,
+        join_cols=[entity_col],
     )
