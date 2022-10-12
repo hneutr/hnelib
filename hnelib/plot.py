@@ -5,44 +5,94 @@ from scipy.stats import gaussian_kde, pearsonr, spearmanr
 import matplotlib.colors
 
 
-WIDTHS = {
-    '1-col': 3.54331,
-    '2-col': 7.08661,
-}
+#--------------------------------[ dimensions ]--------------------------------#
+SUBPLOT_SIZE = 3.54331
 
+# WIDTHS = {
+#     '1-col': 3.54331,
+#     '2-col': 7.08661,
+# }
+#
+def _get_dims():
+    dims = {
+        'W': {},
+        'H': {},
+    }
+
+    for i in range(1, 11):
+        dims[i] = i * SUBPLOT_SIZE
+        dims['W'][i] = i * SUBPLOT_SIZE
+        dims['H'][i] = i * SUBPLOT_SIZE
+
+    return dims
+
+
+DIMS = _get_dims()
+
+#----------------------------------[ colors ]----------------------------------#
+ALPHA = .35
 
 COLORS = {
-    'dark_gray': '#5E5E5E',
-    'color_1': '#45A1F8',
-    'color_2': '#FF6437', 
+    'dark-gray': '#5E5E5E',
+    '1': '#45A1F8',
+    '2': '#FF6437', 
 }
 
-DIMENSIONS = {
-    'widths': {
-        '1column': 5.5,
-        '2column': 11,
-    },
-    'heights': {
-        'standard': 5.5,
-    },
-}
+def set_alpha_on_colors(colors, alpha=ALPHA):
+    """
+    takes colors (single or list) and applies an alpha to them.
+    """
+    if isinstance(colors, list):
+        return [matplotlib.colors.to_rgba(c, alpha) for c in colors]
+    elif isinstance(colors, pd.Series):
+        return [matplotlib.colors.to_rgba(c, alpha) for c in list(colors)]
+    else:
+        return matplotlib.colors.to_rgba(colors, alpha)
 
 
-FONTSIZES = {
+def _get_colors():
+    for c in list(COLORS):
+        COLORS[c.replace('-', '_')] = COLORS[c]
+
+    alpha_colors = {}
+    for k, v in COLORS.items():
+        alpha_colors[k] = set_alpha_on_colors(v)
+
+    COLORS['a'] = alpha_colors
+
+    return COLORS
+    
+COLORS = _get_colors()
+
+#--------------------------------[ fontsizes ]---------------------------------#
+ADJECTIVE_FONTSIZES = {
     'small': 5,
     'medium': 6,
     'large': 7,
     'huge': 8,
 }
 
+PLOT_ELEMENT_FONTSIZES = {
+    'annotation': 'small',
+    'tick': 'medium',
+    'legend': 'medium',
+    'axis': 'large',
+    'title': 'huge',
+    'subplot-label': 'huge',
+}
 
-FONTSIZES['axis'] = FONTSIZES['large']
-FONTSIZES['tick'] = FONTSIZES['medium']
-FONTSIZES['annotation'] = FONTSIZES['small']
-FONTSIZES['title'] = FONTSIZES['huge']
-FONTSIZES['legend'] = FONTSIZES['medium']
-FONTSIZES['subplot-label'] = FONTSIZES['huge']
+def _get_fontsizes():
+    fontsizes = ADJECTIVE_FONTSIZES.copy()
+    for element, adjective in PLOT_ELEMENT_FONTSIZES.items():
+        fontsizes[element] = ADJECTIVE_FONTSIZES[adjective]
 
+    return fontsizes
+
+FONTSIZES = _get_fontsizes()
+
+
+
+#----------------------------------[ arrows ]----------------------------------#
 BASIC_ARROW_PROPS = {
     'lw': .35,
     'color': COLORS['dark_gray'],
@@ -61,18 +111,6 @@ HEADLESS_ARROW_PROPS = {
     'shrinkA': 0,
     'shrinkB': 0,
 }
-
-
-def set_alpha_on_colors(colors, alpha=.35):
-    """
-    takes colors (single or list) and applies an alpha to them.
-    """
-    if isinstance(colors, list):
-        return [matplotlib.colors.to_rgba(c, alpha) for c in colors]
-    elif isinstance(colors, pd.Series):
-        return [matplotlib.colors.to_rgba(c, alpha) for c in list(colors)]
-    else:
-        return matplotlib.colors.to_rgba(colors, alpha)
 
 
 def annotate(ax, text, xy_loc=(.1, .9), annotate_kwargs={}):
@@ -366,3 +404,11 @@ def text_fraction_label(numerator, denominator, convert_hyphens=True):
         text = text.replace("-", u"\u2010")
 
     return text
+
+#------------------------------------------------------------------------------#
+#                                                                              #
+#                                                                              #
+#                                  constants                                   #
+#                                                                              #
+#                                                                              #
+#------------------------------------------------------------------------------#
