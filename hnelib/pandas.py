@@ -22,13 +22,13 @@ def _get_original_and_groupby_cols(df, groupby_cols=None):
         groupby_cols = _get_col('groupby')
         df[groupby_cols] = True
 
-    groupby_cols = hnelib.utils.listify(groupby_cols)
+    groupby_cols = hnelib.utils.as_list(groupby_cols)
 
     return df, original_cols, groupby_cols
 
 
 def _clean_cols(df, original_cols, added_cols):
-    added_cols = hnelib.utils.listify(added_cols)
+    added_cols = hnelib.utils.as_list(added_cols)
 
     cols = original_cols + [c for c in added_cols if c not in original_cols]
 
@@ -36,9 +36,9 @@ def _clean_cols(df, original_cols, added_cols):
 
 
 def _merge_annotations(df, annotations, original_cols, added_cols, join_cols):
-    original_cols = hnelib.utils.listify(original_cols)
-    added_cols = hnelib.utils.listify(added_cols)
-    join_cols = hnelib.utils.listify(join_cols)
+    original_cols = hnelib.utils.as_list(original_cols)
+    added_cols = hnelib.utils.as_list(added_cols)
+    join_cols = hnelib.utils.as_list(join_cols)
 
     df = df.drop(columns=added_cols, errors='ignore')
 

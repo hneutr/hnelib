@@ -3,66 +3,27 @@ import pandas as pd
 import itertools
 from scipy.stats import gaussian_kde, pearsonr, spearmanr
 import matplotlib.colors
+from hnelib.color import C as COLORS
+from hnelib.color import set_alpha as set_alpha_on_colors
 
 
 #--------------------------------[ dimensions ]--------------------------------#
 SUBPLOT_SIZE = 3.54331
 
-# WIDTHS = {
-#     '1-col': 3.54331,
-#     '2-col': 7.08661,
-# }
-#
 def _get_dims():
-    dims = {
-        'W': {},
-        'H': {},
-    }
+    dims = {}
 
-    for i in range(1, 11):
-        dims[i] = i * SUBPLOT_SIZE
-        dims['W'][i] = i * SUBPLOT_SIZE
-        dims['H'][i] = i * SUBPLOT_SIZE
+    subplot_sizes = [i * SUBPLOT_SIZE for i in range(1, 11)]
+    for i, width in enumerate(subplot_sizes):
+        dims[i] = width
+
+        for j, height in enumerate(subplot_sizes):
+            dims[(i, j)] = (width, height)
 
     return dims
 
 
 DIMS = _get_dims()
-
-#----------------------------------[ colors ]----------------------------------#
-ALPHA = .35
-
-COLORS = {
-    'dark-gray': '#5E5E5E',
-    '1': '#45A1F8',
-    '2': '#FF6437', 
-}
-
-def set_alpha_on_colors(colors, alpha=ALPHA):
-    """
-    takes colors (single or list) and applies an alpha to them.
-    """
-    if isinstance(colors, list):
-        return [matplotlib.colors.to_rgba(c, alpha) for c in colors]
-    elif isinstance(colors, pd.Series):
-        return [matplotlib.colors.to_rgba(c, alpha) for c in list(colors)]
-    else:
-        return matplotlib.colors.to_rgba(colors, alpha)
-
-
-def _get_colors():
-    for c in list(COLORS):
-        COLORS[c.replace('-', '_')] = COLORS[c]
-
-    alpha_colors = {}
-    for k, v in COLORS.items():
-        alpha_colors[k] = set_alpha_on_colors(v)
-
-    COLORS['a'] = alpha_colors
-
-    return COLORS
-    
-COLORS = _get_colors()
 
 #--------------------------------[ fontsizes ]---------------------------------#
 ADJECTIVE_FONTSIZES = {
@@ -187,7 +148,7 @@ def add_gridlines_on_ticks(ax, x=True, y=True, **kwargs):
     add_gridlines(ax, xs=xs, ys=ys, **kwargs)
 
 
-def add_gridlines(ax, xs=[], ys=[], color=COLORS['dark_gray'], zorder=1, alpha=.5, lw=.5, **kwargs):
+def add_gridlines(ax, xs=[], ys=[], color=COLORS['dark-gray'], zorder=1, alpha=.5, lw=.5, **kwargs):
     """
     adds gridlines to the plot
     """
@@ -404,11 +365,3 @@ def text_fraction_label(numerator, denominator, convert_hyphens=True):
         text = text.replace("-", u"\u2010")
 
     return text
-
-#------------------------------------------------------------------------------#
-#                                                                              #
-#                                                                              #
-#                                  constants                                   #
-#                                                                              #
-#                                                                              #
-#------------------------------------------------------------------------------#

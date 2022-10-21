@@ -128,6 +128,19 @@ class PlotExpansion(Expansion):
         os.system(f'open "{str(self.path)}"')
 
 
+class InteractivePlotExpansion(Expansion):
+    SHORT_NAME = 'plot'
+    SUFFIXES = ['.png', '.pdf', '.eps']
+
+    def save(self, result, dpi=400, bbox_inches='tight'):
+        self.path.parent.mkdir(exist_ok=True, parents=True)
+        plt.show()
+
+    @property
+    def result(self):
+        os.system(f'open "{str(self.path)}"')
+
+
 class DataFrameExpansion(Expansion):
     SHORT_NAME = 'df'
     SUFFIXES = ['.gz', '.csv']
@@ -632,6 +645,9 @@ class Runner(object):
 
 class PlotRunner(Runner):
     DEFAULT_EXPANSION_TYPE = PlotExpansion
+
+class InteractivePlotRunner(Runner):
+    DEFAULT_EXPANSION_TYPE = InteractivePlotExpansion
 
 class DataFrameRunner(Runner):
     DEFAULT_EXPANSION_TYPE = DataFrameExpansion

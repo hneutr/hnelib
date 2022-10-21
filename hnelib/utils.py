@@ -1,5 +1,3 @@
-import pandas as pd
-
 def empty_directory(directory, recursive=True, delete=True):
     for f in directory.glob('*'):
         if f.is_file():
@@ -22,13 +20,6 @@ def fraction_to_percent(fraction, round_to=0):
     return percent
 
 
-def series_to_list(thing):
-    if isinstance(thing, pd.Series):
-        thing = list(thing)
-
-    return thing
-
-
 def add_ordinal_indicator(string):
     if string.isnumeric():
         ones_pos = int(string[0])
@@ -47,10 +38,21 @@ def add_ordinal_indicator(string):
     return string
 
 
-def listify(thing):
-    thing = thing or []
+def as_list(thing=None):
+    """
+    makes a thing into a list.
 
-    if not isinstance(thing, list):
+    - pd.Series → list
+    - None → []
+    - thing = 7 → [7]
+    """
+    import pandas as pd
+
+    if thing is None:
+        thing = []
+    elif isinstance(thing, pd.Series):
+        thing = list(thing)
+    elif not isinstance(thing, list):
         thing = [thing]
 
     return thing
