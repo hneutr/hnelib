@@ -182,7 +182,7 @@ class Item(object):
         'results_dir': Path.cwd().joinpath('results'),
         'path_components': [],
         'kwargs': {},
-        'kwarg_defaults': {},
+        'arg_defaults': {},
         'directory_expansions': {},
         'prefix_expansions': {},
         'suffix_expansions': {},
@@ -200,7 +200,7 @@ class Item(object):
 
     ARG_STORE_NAMES = [
         'kwargs',
-        'kwarg_defaults',
+        'arg_defaults',
         'directory_expansions',
         'prefix_expansions',
         'suffix_expansions',
@@ -369,7 +369,7 @@ class Item(object):
         return expansions
 
     def get_expansion(self, **kwargs):
-        for k, v in self.kwarg_defaults.items():
+        for k, v in self.arg_defaults.items():
             if k not in kwargs:
                 kwargs[k] = v
 

@@ -227,7 +227,7 @@ class TestItem:
         runner = Runner(
             collection={
                 'directory_expansions': {'x': [1, 2, 3]},
-                'kwarg_defaults': {
+                'arg_defaults': {
                     'x': 1,
                 },
                 'a': lambda x: x,
