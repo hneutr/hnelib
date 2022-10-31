@@ -26,7 +26,7 @@ class ItemNotFound(Exception):
 class AmbiguousExpansionQuery(Exception):
     pass
 
-class ExpansionNotFound(Exception):
+class MultipleExpansionsFound(Exception):
     pass
 
 
@@ -182,6 +182,7 @@ class Item(object):
         'results_dir': Path.cwd().joinpath('results'),
         'path_components': [],
         'kwargs': {},
+        'kwarg_defaults': {},
         'directory_expansions': {},
         'prefix_expansions': {},
         'suffix_expansions': {},
@@ -196,6 +197,14 @@ class Item(object):
     }
 
     ALL_CONFIG_DEFAULTS = {**CONFIG_DEFAULTS, **LEAF_CONFIG_DEFAULTS}
+
+    ARG_STORE_NAMES = [
+        'kwargs',
+        'kwarg_defaults',
+        'directory_expansions',
+        'prefix_expansions',
+        'suffix_expansions',
+    ]
 
     def __init__(self, **kwargs):
         for key, default in self.ALL_CONFIG_DEFAULTS.items():
@@ -251,7 +260,7 @@ class Item(object):
         config['expansion_type'] = collection.get('expansion_type', config.get('expansion_type'))
         config['results_dir'] = collection.get('results_dir', config.get('results_dir'))
 
-        for key in ['kwargs', 'directory_expansions', 'prefix_expansions', 'suffix_expansions']:
+        for key in cls.ARG_STORE_NAMES:
             config[key].update(collection.get(key, {}))
 
         config.update({k: v for k, v in collection.items() if k in cls.LEAF_CONFIG_DEFAULTS})
@@ -281,7 +290,7 @@ class Item(object):
         if _varargs or _kwargs:
             return
 
-        for arg_store_name in ['kwargs', 'directory_expansions', 'prefix_expansions', 'suffix_expansions']:
+        for arg_store_name in self.ARG_STORE_NAMES:
             arg_store = getattr(self, arg_store_name)
             arg_store = {k: v for k, v in arg_store.items() if k in _args}
             setattr(self, arg_store_name, arg_store)
@@ -360,13 +369,19 @@ class Item(object):
         return expansions
 
     def get_expansion(self, **kwargs):
+        for k, v in self.kwarg_defaults.items():
+            if k not in kwargs:
+                kwargs[k] = v
+
+        print(kwargs)
+        print(self.kwarg_defaults)
+        print(kwargs)
         expansions = self.get_expansions(**kwargs)
 
         if len(expansions) > 1:
-            raise AmbiguousExpansionQuery
+            raise MultipleExpansionsFound
 
         return expansions[0]
-
 
     def parsed_query(self, query):
         return query.split('/')
@@ -526,9 +541,8 @@ class Runner(object):
 
         if len(full_matches) == 1:
             return full_matches[0]
-        else:
-            print("this shouldn't happen")
-            raise AmbiguousCollectionQuery
+        # else:
+        #     raise AmbiguousCollectionQuery
             
         name_matches = [r for r in results if r[1]['name'] == 'complete']
 

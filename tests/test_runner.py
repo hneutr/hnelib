@@ -1,8 +1,9 @@
 from unittest.mock import patch
 from pathlib import Path
 from expects import *
+import pytest
 
-from hnelib.runner import Runner, Item, Expansion, PlotExpansion
+from hnelib.runner import Runner, Item, Expansion, PlotExpansion, MultipleExpansionsFound
 
 class TestRunner:
     def test_parse_collection(self):
@@ -210,3 +211,31 @@ class TestItem:
         ]
 
         expect(actual).to(equal(expected))
+
+    def test_raises_exception_without_default(self):
+        runner = Runner(
+            collection={
+                'directory_expansions': {'x': [1, 2, 3]},
+                'a': lambda x: x,
+            }
+        )
+
+        with pytest.raises(MultipleExpansionsFound):
+            runner.get_item('a').get_expansion().path
+
+    def test_raises_exception_without_default(self):
+        runner = Runner(
+            collection={
+                'directory_expansions': {'x': [1, 2, 3]},
+                'kwarg_defaults': {
+                    'x': 1,
+                },
+                'a': lambda x: x,
+            }
+        )
+
+        actual = runner.get_item('a').get_expansion().path
+        expected = Item.CONFIG_DEFAULTS['results_dir'].joinpath('1', 'a.txt')
+
+        expect(actual).to(equal(expected))
+
