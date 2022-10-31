@@ -373,9 +373,6 @@ class Item(object):
             if k not in kwargs:
                 kwargs[k] = v
 
-        print(kwargs)
-        print(self.kwarg_defaults)
-        print(kwargs)
         expansions = self.get_expansions(**kwargs)
 
         if len(expansions) > 1:
