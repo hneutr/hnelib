@@ -11,16 +11,12 @@ def get_logits(
     groupby_cols=[],
     add_constant=True,
 ):
-    """
-
-    """
-
     if isinstance(exog, str):
         exog = [exog]
 
     df = df.copy()
 
-    df, groupby_cols = hnelib.pandas.pad_groupby_cols(df, groupby_cols)
+    df, original_cols, groupby_cols = hnelib.pandas._get_original_and_groupby_cols(df, groupby_cols)
 
     df = df[groupby_cols + exog + [endog]]
 
@@ -39,7 +35,7 @@ def get_logits(
 
         model_result = sm.Logit(Y, X).fit(disp=False)
 
-        logit_row = hnelib.pandas.get_groupby_info(rows, groupby_cols)
+        logit_row = hnelib.pandas._get_groupby_info(rows, groupby_cols, original_cols)
 
         for key in result_keys:
             logit_row[key] = model_result.params[key]

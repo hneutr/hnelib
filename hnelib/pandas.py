@@ -26,6 +26,10 @@ def _get_original_and_groupby_cols(df, groupby_cols=None):
 
     return df, original_cols, groupby_cols
 
+def _get_groupby_info(rows, groupby_cols, original_cols):
+    row = rows.iloc[0]
+    return {c: row[c] for c in groupby_cols if c in original_cols}
+
 
 def _clean_cols(df, original_cols, added_cols):
     added_cols = hnelib.utils.as_list(added_cols)
@@ -97,7 +101,7 @@ def annotate_percentiles(
     percentiles=[25, 75],
     percentile_col_prefix='',
 ):
-    df = original_cols, groupby_cols = _get_original_and_groupby_cols(df, groupby_cols=groupby_cols)
+    df, original_cols, groupby_cols = _get_original_and_groupby_cols(df, groupby_cols=groupby_cols)
 
     percentile_to_col = {p: percentile_col_prefix + hnelib.utils.add_ordinal_indicator(p) for p in percentiles}
 

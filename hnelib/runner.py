@@ -577,7 +577,7 @@ class Runner(object):
     def run_all(self, **kwargs):
         self.run_items(self.items, **kwargs)
 
-    def run_subcollection(self, query, **kwargs):
+    def run_collection(self, query, **kwargs):
         self.run_items(self.get_items_in_collection(query), **kwargs)
 
     def run_items(self, items, **kwargs):
