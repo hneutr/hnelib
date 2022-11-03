@@ -15,8 +15,7 @@
 import numpy as np
 import pandas as pd
 import itertools
-from scipy.stats import gaussian_kde, pearsonr, spearmanr
-import matplotlib.colors
+from scipy.stats import pearsonr
 
 import hnelib.color
 

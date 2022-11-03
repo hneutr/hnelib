@@ -2,6 +2,11 @@ import matplotlib.colors
 
 import hnelib.utils
 
+#------------------------------------------------------------------------------#
+#                                                                              #
+#                                  constants                                   #
+#                                                                              #
+#------------------------------------------------------------------------------#
 ALPHA = .35
 
 C = {
@@ -10,8 +15,15 @@ C = {
     '2': '#FF6437', 
 }
 
-COLORS_SET = False
+# low-alpha colors
+FC = {}
 
+
+#------------------------------------------------------------------------------#
+#                                                                              #
+#                                  functions                                   #
+#                                                                              #
+#------------------------------------------------------------------------------#
 def set_alpha(colors, alpha=ALPHA):
     """
     takes colors (single or list) and applies an alpha to them.
@@ -26,21 +38,25 @@ def set_alpha(colors, alpha=ALPHA):
     return new_colors
 
 
-def _set_colors():
-    global COLORS_SET, C
+#------------------------------------------------------------------------------#
+#                                                                              #
+#                                 module setup                                 #
+#                                                                              #
+#------------------------------------------------------------------------------#
+def __set_colors__():
+    global __COLORS_SET__, C, FC
 
-    if COLORS_SET:
+    if __COLORS_SET__:
         return
 
     for c in list(C):
         C[c.replace('-', '_')] = C[c]
 
-    alpha_colors = {}
     for k, v in C.items():
-        alpha_colors[k] = set_alpha(v)
+        FC[k] = set_alpha(v)
 
-    C['a'] = alpha_colors
-
-    COLORS_SET = True
+    __COLORS_SET__ = True
     
-_set_colors()
+
+__COLORS_SET__ = False
+__set_colors__()
