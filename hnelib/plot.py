@@ -1,10 +1,24 @@
+#------------------------------------------------------------------------------#
+# TODO
+# ----
+# 1. fix DIMS to be (#rows, #cols) and match plt.subplots
+# 2. make "subplots" function
+# 3. move functions from:
+#   - leagalize.plot.utils:
+#       - bar_plot
+#       - box_plot
+#       - stacked_hbar_plot
+#   - usfhn.standard_plots:
+#       - tadpole_plot (plot_connected_two_values_by_taxonomy_level)
+#       - connected_scatter (draw_lines_for_change_plot)
+#------------------------------------------------------------------------------#
 import numpy as np
 import pandas as pd
 import itertools
 from scipy.stats import gaussian_kde, pearsonr, spearmanr
 import matplotlib.colors
-from hnelib.color import C as COLORS
-from hnelib.color import set_alpha as set_alpha_on_colors
+
+import hnelib.color
 
 
 #--------------------------------[ dimensions ]--------------------------------#
@@ -55,7 +69,7 @@ FONTSIZES = _get_fontsizes()
 #----------------------------------[ arrows ]----------------------------------#
 BASIC_ARROW_PROPS = {
     'lw': .35,
-    'color': COLORS['dark_gray'],
+    'color': hnelib.color.C['dark_gray'],
     'arrowstyle': '->, head_width=.15, head_length=.21',
 }
 
@@ -66,7 +80,7 @@ ZERO_SHRINK_A_ARROW_PROPS = {
 
 HEADLESS_ARROW_PROPS = {
     'lw': .35,
-    'color': COLORS['dark_gray'],
+    'color': hnelib.color.C['dark_gray'],
     'arrowstyle': '-',
     'shrinkA': 0,
     'shrinkB': 0,
@@ -147,7 +161,7 @@ def add_gridlines_on_ticks(ax, x=True, y=True, **kwargs):
     add_gridlines(ax, xs=xs, ys=ys, **kwargs)
 
 
-def add_gridlines(ax, xs=[], ys=[], color=COLORS['dark-gray'], zorder=1, alpha=.5, lw=.5, **kwargs):
+def add_gridlines(ax, xs=[], ys=[], color=hnelib.color.C['dark-gray'], zorder=1, alpha=.5, lw=.5, **kwargs):
     """
     adds gridlines to the plot
     """
@@ -218,7 +232,7 @@ def stringify_numbers_without_ugly_zeros(numbers):
 def plot_connected_scatter(ax, df, x_column, y_column, color, s=12, lw=.65):
     df = df.copy()
     df = df.sort_values(by=x_column)
-    faded_color = set_alpha_on_colors(color)
+    faded_color = hnelib.color.set_alpha(color)
 
     ax.plot(
         df[x_column],
@@ -250,7 +264,7 @@ def plot_connected_scatter(ax, df, x_column, y_column, color, s=12, lw=.65):
 def plot_disconnected_scatter(ax, df, x_column, y_column, color, s=4, lw=1.5):
     df = df.copy()
     df = df.sort_values(by=x_column)
-    faded_color = set_alpha_on_colors(color, .75)
+    faded_color = hnelib.color.set_alpha(color, .75)
 
     big_s = s * 2
     small_s = s - 3
