@@ -6,3 +6,5 @@ env
 hnelib.egg-info
 tests/results
 results
+hnelib/pd/__pycache__
+hnelib/stat/__pycache__

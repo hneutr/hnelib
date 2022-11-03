@@ -14,7 +14,7 @@ def _get_col(col_name):
     return f"__hnelib_{col_name}_col__"
 
 
-def _get_original_and_groupby_cols(df, groupby_cols=None):
+def _get_original_and_groupby_cols(df, groupby_cols=GROUPBY_COLS):
     df = df.copy()
     original_cols = list(df.columns)
 
@@ -219,28 +219,6 @@ def aggregate_over_col(
         )
 
     return df
-
-
-def correct_significance_for_multiple_tests(
-    df,
-    p_col='P',
-    groupby_cols=GROUPBY_COLS,
-    significance_col='Significant',
-    alpha=.05,
-    method='bonferroni',
-):
-    from statsmodels.stats.multitest import multipletests
-    df, original_cols, groupby_cols = _get_original_and_groupby_cols(df, groupby_cols)
-
-    dfs = []
-    for _, rows in df.groupby(groupby_cols):
-        rejects = multipletests(rows[p_col], alpha=alpha, method=method)
-
-        rows = rows.copy()
-        rows[significance_col] = [not reject for reject in rejects]
-        dfs.append(rows)
-
-    return _clean_cols(df, original_cols, significance_col)
 
 
 def annotate_duplicate_percentile(
