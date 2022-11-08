@@ -596,6 +596,7 @@ def grouped_bar_plot(
 
     bar_plot(
         ax,
+        df,
         bars,
         val_col='Value',
         x_col='X',
