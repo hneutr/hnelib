@@ -440,15 +440,15 @@ def bar_plot(
     if 'Annotation' in df.columns:
         annotations = df.copy()
 
-        if 'Annotate':
-            df = df[
-                df['Annotate']
+        if 'Annotate' in annotations.columns:
+            annotations = annotations[
+                annotations['Annotate']
             ]
 
-        df['Y'] /= 2
+        annotations['Y'] /= 2
 
-        if 'Bottom' in df.columns:
-            df['Y'] += df['Bottom']
+        if 'Bottom' in annotations.columns:
+            annotations['Y'] += annotations['Bottom']
 
         for i, row in annotations.iterrows():
             ax.annotate(
