@@ -546,3 +546,103 @@ def stacked_bar_plot(
             fade_facecolor=fade_bar_facecolor,
             draw_kwargs=draw_kwargs,
         )
+
+def grouped_bar_plot(
+    ax,
+    df,
+    val_col,
+    bar_col,
+    group_col,
+    bar_order_col=None,
+    bar_color_col=None,
+    bar_hatch_col=None,
+    bar_annotation_col=None,
+    annotate_bar_col=None,
+    group_order_col=None,
+    group_label_col=None,
+    group_label_color_col=None,
+    fade_bar_facecolor=True,
+    group_pad=1,
+    draw_kwargs={},
+):
+    df = df.copy().rename(columns={
+        val_col: 'Value',
+        bar_col: 'Bar',
+        bar_order_col: 'BarOrder',
+        bar_color_col: 'BarColor',
+        bar_hatch_col: 'BarHatch',
+        bar_annotation_col: 'BarAnnotation',
+        annotate_bar_col: 'AnnotateBar',
+        group_col: 'Group',
+        group_order_col: 'GroupOrder',
+        group_label_col: 'GroupLabel',
+        group_label_color_col: 'GroupLabelColor',
+    })
+
+    if 'BarOrder' not in df.columns:
+        bars = sorted(list(df['Bar'].unique()))
+        df['BarOrder'] = df['Bar'].apply(bars.index)
+
+
+    if 'GroupOrder' not in df.columns:
+        groups = sorted(list(df['Group'].unique()))
+        df['GroupOrder'] = df['Group'].apply(groups.index)
+
+    group_size = (2 * group_pad) + df['Bar'].nunique()
+
+    df['GroupXStart'] = df['GroupOrder'] * group_size
+
+    df['X'] = df['GroupXStart'] + group_pad + df['BarOrder']
+
+    bar_plot(
+        ax,
+        bars,
+        val_col='Value',
+        x_col='X',
+        color_col='BarColor',
+        hatch_col='BarHatch',
+        annotation_col='BarAnnotation',
+        annotate_col='AnnotateBar',
+        fade_facecolor=fade_bar_facecolor,
+        draw_kwargs=draw_kwargs,
+    )
+
+    if 'GroupLabel' in df.columns:
+        df['GroupTick'] = df['GroupXStart'] + (group_size / 2)
+
+        label_xaxis(
+            ax,
+            df,
+            tick_col='GroupTick',
+            label_col='GroupLabel',
+            color_col='GroupLabelColor',
+        )
+
+    ax.set_xlim(0, max(df['X']) + group_pad)
+
+
+def label_xaxis(
+    ax,
+    df,
+    tick_col,
+    label_col=None,
+    color_col=None,
+):
+    cols = [tick_col]
+
+    if label_col:
+        cols.append(label_col)
+
+    if color_col:
+        cols.append(color_col)
+
+    df = df.copy()[cols].drop_duplicates()
+
+    ax.set_xticks(df[tick_col])
+
+    if label_col:
+        ax.set_xticks(df[label_col])
+
+    if color_col:
+        for color, tick in zip(df[color_col], ax.get_xticklabels()):
+            tick.set_color(color)
