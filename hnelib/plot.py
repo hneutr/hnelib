@@ -467,7 +467,8 @@ def bar_plot(
             for color, tick in zip(list(df['LabelColor']), ax.get_xticklabels()):
                 tick.set_color(color)
 
-    ax.set_xlim(-.5, len(df) -.5)
+    if len(df):
+        ax.set_xlim(-.5, len(df) -.5)
 
 
 def stacked_bar_plot(
