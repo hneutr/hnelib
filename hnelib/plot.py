@@ -384,110 +384,164 @@ def text_fraction_label(numerator, denominator, convert_hyphens=True):
 #                              plotting functions                              #
 #                                                                              #
 #------------------------------------------------------------------------------#
+def bar_plot(
+    ax,
+    df,
+    val_col,
+    x_col=None,
+    color_col=None,
+    hatch_col=None,
+    label_col=None,
+    label_color_col=None,
+    annotation_col=None,
+    annotate_col=None,
+    bottom_col=None,
+    fade_facecolor=True,
+    draw_kwargs={},
+):
+    df = df.copy().rename(columns={
+        val_col: 'Y',
+        x_col: 'X',
+        color_col: 'Color',
+        hatch_col: 'Hatch',
+        label_col: 'Label',
+        label_color_col: 'LabelColor',
+        annotation_col: 'Annotation',
+        annotate_col: 'Annotate',
+        bottom_col: 'Bottom',
+    })
+
+    if 'X' not in df.columns:
+        df['X'] = [i for i in range(len(df))]
+
+    if 'Color' in df.columns:
+        df['FaceColor'] = df['Color']
+
+        if fade_bar_facecolor:
+            df['FaceColor'] = df['FaceColor'].apply(hnelib.color.set_alpha)
+
+        draw_kwargs['edgecolor'] = df['Color']
+        draw_kwargs['color'] = df['FaceColor']
+
+    if 'Hatch' in df.columns:
+        draw_kwargs['color'] = 'none'
+        draw_kwargs['hatch'] = df['Hatch']
+
+    if 'Bottom' in df.columns:
+        draw_kwargs['bottom'] = df['Bottom']
+
+    ax.bar(
+        df['X'],
+        df['Y'],
+        zorder=2,
+        **draw_kwargs,
+    )
+
+    if 'Annotation' in df.columns:
+        annotations = df.copy()
+
+        if 'Annotate':
+            df = df[
+                df['Annotate']
+            ]
+
+        df['Y'] /= 2
+
+        if 'Bottom' in df.columns:
+            df['Y'] += df['Bottom']
+
+        for i, row in annotations.iterrows():
+            ax.annotate(
+                row['Annotation'],
+                (row['X'], row['Y']),
+                ha='center',
+                va='center',
+                zorder=3,
+            )
+
+    if 'Label' in df.columns:
+        ax.set_xticks(df['X'])
+        ax.set_xticklabels(df['Label'])
+
+        if 'LabelColor' in df.columns:
+            for color, tick in zip(list(df['LabelColor']), ax.get_xticklabels()):
+                tick.set_color(color)
+
+    ax.set_xlim(-.5, len(df) -.5)
+
+
 def stacked_bar_plot(
     ax,
     df,
     val_col,
     bar_col,
     stack_col,
+    bar_order_col=None,
     bar_color_col=None,
     bar_hatch_col=None,
-    bar_label_col=None,
-    bar_label_val_threshold=.05,
+    bar_annotation_col=None,
+    annotate_bar_col=None,
+    stack_x_col=None,
     stack_label_col=None,
     stack_label_color_col=None,
     fade_bar_facecolor=True,
-    bar_kwargs={},
+    draw_kwargs={},
 ):
-    df = df.copy()
+    df = df.copy().rename(columns={
+        val_col: 'Value',
+        bar_col: 'Bar',
+        bar_order_col: 'BarOrder',
+        bar_color_col: 'BarColor',
+        bar_hatch_col: 'BarHatch',
+        bar_annotation_col: 'BarAnnotation',
+        annotate_bar_col: 'AnnotateBar',
+        stack_col: 'Stack',
+        stack_x_col: 'StackX',
+        stack_label_col: 'StackLabel',
+        stack_label_color_col: 'StackLabelColor',
+    })
 
-    stacks = sorted(list(df[stack_col].unique()))
-    df['StackIndex'] = df[stack_col].apply(stacks.index)
+    if 'StackX' not in df.columns:
+        stacks = sorted(list(df['Stack'].unique()))
+        df['StackX'] = df['Stack'].apply(stacks.index)
 
-    bars = sorted(list(df[bar_col].unique()))
-    df['BarIndex'] = df[bar_col].apply(bars.index)
-
-    if bar_color_col:
-        if fade_bar_facecolor:
-            df['FaceColor'] = df[bar_color_col].apply(hnelib.color.set_alpha)
-        else:
-            df['FaceColor'] = df[bar_color_col]
+    if 'BarOrder' not in df.columns:
+        bars = sorted(list(df['Bar'].unique()))
+        df['BarOrder'] = df['Bar'].apply(bars.index)
 
     bottoms = []
-    for stack_index, bars in df.groupby('StackIndex'):
+    for stack, bars in df.groupby('Stack'):
         bottom = 0
-        for i, bar in bars.sort_values(by='BarIndex').iterrows():
+        for i, row in bars.sort_values(by='BarOrder').iterrows():
             bottoms.append({
-                'StackIndex': stack_index,
-                'BarIndex': bar['BarIndex'],
+                'Stack': stack,
+                'Bar': row['Bar'],
                 'Bottom': bottom,
             })
 
-            bottom += bar[val_col]
+            bottom += row['Value']
 
     df = df.merge(
         pd.DataFrame(bottoms),
         on=[
-            'BarIndex',
-            'StackIndex',
+            'Bar',
+            'Stack',
         ]
     )
 
-    df = df.sort_values(by=['StackIndex', 'BarIndex'])
-
-    for bar_index, bars in df.groupby('BarIndex'):
-        kwargs = {}
-
-        if bar_color_col:
-            kwargs['edgecolor'] = bars[bar_color_col]
-            kwargs['color'] = bars['FaceColor']
-
-        kwargs['hatch'] = None
-
-        if bar_hatch_col:
-            kwargs['color'] = 'none'
-            kwargs['hatch'] = bars[bar_hatch_col]
-
-        kwargs.update(bar_kwargs)
-
-        ax.bar(
-            bars['StackIndex'],
-            bars[val_col],
-            bottom=bars['Bottom'],
-            zorder=2,
-            **kwargs,
+    for bar_index, bars in df.groupby('BarOrder'):
+        bar_plot(
+            ax,
+            bars,
+            val_col='Value',
+            x_col='StackX',
+            color_col='BarColor',
+            hatch_col='BarHatch',
+            label_col='StackLabel',
+            label_color_col='StackLabelColor',
+            annotation_col='BarAnnotation',
+            annotate_col='AnnotateBar',
+            bottom_col='Bottom',
+            fade_facecolor=fade_bar_facecolor,
+            draw_kwargs=draw_kwargs,
         )
-
-    if bar_label_col:
-        annotations = df.copy()[
-            df[val_col] >= bar_label_val_threshold
-        ]
-
-        for i, row in annotations.iterrows():
-            ax.annotate(
-                row[bar_label_col],
-                (row['StackIndex'], row['Bottom'] + (row[val_col] / 2)),
-                ha='center',
-                va='center',
-                zorder=3,
-            )
-
-    if stack_label_col:
-        label_cols = [
-            'StackIndex',
-            stack_label_col,
-        ] 
-
-        if stack_label_color_col:
-            label_cols.append(stack_label_color_col)
-
-        labels = df.copy()[label_cols].drop_duplicates().sort_values(by='StackIndex')
-
-        ax.set_xticks(list(labels['StackIndex']))
-        ax.set_xticklabels(list(labels[stack_label_col]))
-
-        if stack_label_color_col:
-            for color, tick in zip(list(labels[stack_label_color_col]), ax.get_xticklabels()):
-                tick.set_color(color)
-
-    ax.set_xlim(-.5, len(stacks) -.5)
