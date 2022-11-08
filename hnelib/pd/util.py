@@ -1,5 +1,7 @@
 import pandas as pd
 
+import hnelib.utils
+
 
 FAKE_COL_PREFIX = 'fake_hnelib_col'
 
