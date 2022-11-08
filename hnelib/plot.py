@@ -332,6 +332,45 @@ def annotate_plot_letters(
         )
 
 
+def set_axis_text(
+    ax,
+    df,
+    tick_col,
+    label_col=None,
+    color_col=None,
+    which='x',
+):
+    set_ticks = getattr(ax, f"set_{which}ticks")
+    set_labels = getattr(ax, f"set_{which}ticklabels")
+    get_labels = getattr(ax, f"get_{which}ticklabels")
+
+    cols = [tick_col]
+
+    if label_col:
+        cols.append(label_col)
+
+    if color_col:
+        cols.append(color_col)
+
+    df = df.copy()[cols].drop_duplicates()
+
+    set_ticks(df[tick_col])
+
+    if label_col:
+        set_labels(df[label_col])
+
+    if color_col:
+        for color, tick in zip(df[color_col], get_labels()):
+            tick.set_color(color)
+
+def set_x_text(*args, **kwargs):
+    set_axis_text(*args, which='x', **kwargs)
+
+
+def set_y_text(*args, **kwargs):
+    set_axis_text(*args, which='y', **kwargs)
+
+
 def set_label_fontsize(axes, fontsize):
     for ax in axes:
         ylabel = ax.get_ylabel()
@@ -399,16 +438,16 @@ def bar_plot(
     fade_facecolor=True,
     draw_kwargs={},
 ):
-    df = df.copy().rename(columns={
-        val_col: 'Y',
-        x_col: 'X',
-        color_col: 'Color',
-        hatch_col: 'Hatch',
-        label_col: 'Label',
-        label_color_col: 'LabelColor',
-        annotation_col: 'Annotation',
-        annotate_col: 'Annotate',
-        bottom_col: 'Bottom',
+    df = hnelib.pd.util.rename_df(df, {
+        'Y': val_col,
+        'X': x_col,
+        'Color': color_col,
+        'Hatch': hatch_col,
+        'Label': label_col,
+        'LabelColor': label_color_col,
+        'Annotation': annotation_col,
+        'Annotate': annotate_col,
+        'Bottom': bottom_col,
     })
 
     if 'X' not in df.columns:
@@ -488,18 +527,18 @@ def stacked_bar_plot(
     fade_bar_facecolor=True,
     draw_kwargs={},
 ):
-    df = df.copy().rename(columns={
-        val_col: 'Value',
-        bar_col: 'Bar',
-        bar_order_col: 'BarOrder',
-        bar_color_col: 'BarColor',
-        bar_hatch_col: 'BarHatch',
-        bar_annotation_col: 'BarAnnotation',
-        annotate_bar_col: 'AnnotateBar',
-        stack_col: 'Stack',
-        stack_x_col: 'StackX',
-        stack_label_col: 'StackLabel',
-        stack_label_color_col: 'StackLabelColor',
+    df = hnelib.pd.util.rename_df(df, {
+        'Value': val_col,
+        'Bar': bar_col,
+        'BarOrder': bar_order_col,
+        'BarColor': bar_color_col,
+        'BarHatch': bar_hatch_col,
+        'BarAnnotation': bar_annotation_col,
+        'AnnotateBar': annotate_bar_col,
+        'Stack': stack_col,
+        'StackX': stack_x_col,
+        'StackLabel': stack_label_col,
+        'StackLabelColor': stack_label_color_col,
     })
 
     if 'StackX' not in df.columns:
@@ -562,21 +601,21 @@ def grouped_bar_plot(
     group_label_col=None,
     group_label_color_col=None,
     fade_bar_facecolor=True,
-    group_pad=1,
+    group_pad=.5,
     draw_kwargs={},
 ):
-    df = df.copy().rename(columns={
-        val_col: 'Value',
-        bar_col: 'Bar',
-        bar_order_col: 'BarOrder',
-        bar_color_col: 'BarColor',
-        bar_hatch_col: 'BarHatch',
-        bar_annotation_col: 'BarAnnotation',
-        annotate_bar_col: 'AnnotateBar',
-        group_col: 'Group',
-        group_order_col: 'GroupOrder',
-        group_label_col: 'GroupLabel',
-        group_label_color_col: 'GroupLabelColor',
+    df = hnelib.pd.util.rename_df(df, {
+        'Value': val_col,
+        'Bar': bar_col,
+        'BarOrder': bar_order_col,
+        'BarColor': bar_color_col,
+        'BarHatch': bar_hatch_col,
+        'BarAnnotation': bar_annotation_col,
+        'AnnotateBar': annotate_bar_col,
+        'Group': group_col,
+        'GroupOrder': group_order_col,
+        'GroupLabel': group_label_col,
+        'GroupLabelColor': group_label_color_col,
     })
 
     if 'BarOrder' not in df.columns:
@@ -588,7 +627,7 @@ def grouped_bar_plot(
         groups = sorted(list(df['Group'].unique()))
         df['GroupOrder'] = df['Group'].apply(groups.index)
 
-    group_size = (2 * group_pad) + df['Bar'].nunique()
+    group_size = group_pad + df['Bar'].nunique()
 
     df['GroupXStart'] = df['GroupOrder'] * group_size
 
@@ -597,7 +636,6 @@ def grouped_bar_plot(
     bar_plot(
         ax,
         df,
-        bars,
         val_col='Value',
         x_col='X',
         color_col='BarColor',
@@ -609,9 +647,9 @@ def grouped_bar_plot(
     )
 
     if 'GroupLabel' in df.columns:
-        df['GroupTick'] = df['GroupXStart'] + (group_size / 2)
+        df['GroupTick'] = df.groupby('Group')['X'].transform('mean')
 
-        label_xaxis(
+        set_x_text(
             ax,
             df,
             tick_col='GroupTick',
@@ -619,31 +657,17 @@ def grouped_bar_plot(
             color_col='GroupLabelColor',
         )
 
-    ax.set_xlim(0, max(df['X']) + group_pad)
+    ax.set_xlim(min(df['X']) - 1.5 * group_pad, max(df['X']) + 1.5 * group_pad)
 
+    for group in sorted(list(df['Group'].unique())):
+        if not group:
+            continue
 
-def label_xaxis(
-    ax,
-    df,
-    tick_col,
-    label_col=None,
-    color_col=None,
-):
-    cols = [tick_col]
+        x = group * group_size - group_pad / 2
 
-    if label_col:
-        cols.append(label_col)
-
-    if color_col:
-        cols.append(color_col)
-
-    df = df.copy()[cols].drop_duplicates()
-
-    ax.set_xticks(df[tick_col])
-
-    if label_col:
-        ax.set_xticks(df[label_col])
-
-    if color_col:
-        for color, tick in zip(df[color_col], ax.get_xticklabels()):
-            tick.set_color(color)
+        ax.axvline(
+            x,
+            color=hnelib.color.C['dark_gray'],
+            lw=.5,
+            zorder=0,
+        )

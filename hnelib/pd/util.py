@@ -1,3 +1,6 @@
+import pandas as pd
+
+
 FAKE_COL_PREFIX = 'fake_hnelib_col'
 
 
@@ -36,3 +39,10 @@ def get_groupby_cols(df, groupby_cols=None):
 def remove_fake_cols(df):
     cols = [col for col in df.columns if not is_fake_col(col)]
     return df[cols]
+
+
+def rename_df(df, column_remap):
+    """
+    creates a df with the new column names, but properly handles duplicated source keys
+    """
+    return pd.DataFrame({new_c: df[old_c] for new_c, old_c in column_remap.items() if old_c in df.columns})
