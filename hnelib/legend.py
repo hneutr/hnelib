@@ -31,7 +31,7 @@ def set_handle_text_colors(legend, handles):
 
 
 class Handle(object):
-    GET_ARTIST = lambda **kwargs: pass
+    GET_ARTIST = lambda **kwargs: kwargs
 
     DEFAULTS = {
         'linewidth': LINEWIDTH,
