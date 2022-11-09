@@ -1,4 +1,5 @@
 from functools import cached_property
+import matplotlib.pyplot as plt
 import matplotlib.patches
 import matplotlib.lines
 
