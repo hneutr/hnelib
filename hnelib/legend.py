@@ -23,7 +23,7 @@ def set_legend(
 
 
 def set_handle_text_colors(legend, handles):
-    text_colors = {h.text: h.color for h in handles if h.color}
+    text_colors = {str(h.text): h.color for h in handles if h.color}
 
     for handle in legend.get_texts():
         text = handle.get_text()
