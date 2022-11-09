@@ -26,7 +26,7 @@ def set_handle_text_colors(legend, handles):
     text_colors = {str(h.text): h.color for h in handles if h.color}
 
     for handle in legend.get_texts():
-        text = handle.get_text()
+        text = str(handle.get_text())
         if text in text_colors:
             plt.setp(handle, color=text_colors[text])
 
