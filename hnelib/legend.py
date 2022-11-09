@@ -31,8 +31,6 @@ def set_handle_text_colors(legend, handles):
 
 
 class Handle(object):
-    GET_ARTIST = lambda kwargs: kwargs
-
     DEFAULTS = {
         'linewidth': LINEWIDTH,
     }
@@ -75,14 +73,16 @@ class Handle(object):
 
     @cached_property
     def artist(self):
-        return self.GET_ARTIST(self.kwargs)
+        return None
 
 
 class Line(Handle):
-    GET_ARTIST = lambda kwargs: matplotlib.lines.Line2D([0], [0], **kwargs)
-
     def set_facecolor(self):
         self.facecolor = None
+
+    @cached_property
+    def artist(self):
+        return matplotlib.lines.Line2D([0], [0], **self.kwargs)
 
 
 class Marker(Handle):
@@ -101,10 +101,17 @@ class Marker(Handle):
         'size': 'markersize',
     }
 
-class Box(Handle):
-    GET_ARTIST = lambda **kwargs: matplotlib.patches.Patch(**kwargs)
+    @cached_property
+    def artist(self):
+        return matplotlib.lines.Line2D([], [], **self.kwargs)
 
+
+class Box(Handle):
     ARTIST_KEYS = {
         'color': 'edgecolor',
         'facecolor': 'facecolor',
     }
+
+    @cached_property
+    def artist(self):
+        return matplotlib.patches.Patch(**self.kwargs)
