@@ -56,14 +56,14 @@ class Handle(object):
 
         self.set_facecolor()
 
-        kwargs['label'] = text
+        self.kwargs = {
+            'label': text
+        }
 
         for k, v in kwargs.items():
             if v != None:
                 artist_key = self.ARTIST_KEYS.get(k, k)
-                kwargs[artist_key] = v
-
-        self.kwargs = kwargs
+                self.kwargs[artist_key] = v
 
     def set_facecolor(self):
         facecolor = getattr(self, 'facecolor', getattr(self, 'color'))
