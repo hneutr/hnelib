@@ -75,7 +75,7 @@ class Handle(object):
 
     @cached_property
     def artist(self):
-        return self.GET_ARTIST(self.kwargs)
+        return self.GET_ARTIST(**self.kwargs)
 
 
 class Line(Handle):
