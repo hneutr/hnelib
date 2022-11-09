@@ -52,11 +52,11 @@ class Handle(object):
         for k, v in kwargs.items():
             setattr(self, k, v)
 
-        self.set_facecolor()
-
         self.kwargs = {
             'label': text
         }
+
+        self.set_facecolor()
 
         for k, v in kwargs.items():
             if v != None:
@@ -70,6 +70,7 @@ class Handle(object):
             facecolor = hnelib.color.set_alpha(facecolor)
 
         self.facecolor = facecolor
+        self.kwargs['facecolor'] = facecolor
 
     @cached_property
     def artist(self):
