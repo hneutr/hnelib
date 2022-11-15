@@ -112,7 +112,7 @@ def duplicate_quantile(
 
         quantile = 0
         for i, entity in enumerate(entities):
-            if quantile < len(bins) and bins[percentile + 1] < i:
+            if quantile < len(bins) and bins[quantile + 1] < i:
                 quantile += 1
 
             annotations.append({
