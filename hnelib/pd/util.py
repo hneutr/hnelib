@@ -47,4 +47,5 @@ def rename_df(df, column_remap):
     """
     creates a df with the new column names, but properly handles duplicated source keys
     """
-    return pd.DataFrame({new_c: df[old_c] for new_c, old_c in column_remap.items() if old_c in df.columns})
+    new_df = pd.DataFrame({new_c: df[old_c] for new_c, old_c in column_remap.items() if old_c in df.columns})
+    return new_df.drop_duplicates()

@@ -56,3 +56,38 @@ def as_list(thing=None):
         thing = [thing]
 
     return thing
+
+def num_to_pretty_str(numbers):
+    numbers = as_list(numbers)
+
+    strings = []
+    for number in numbers:
+        string = str(number)
+
+        prefix = ''
+        if '-' in string:
+            string = string.replace('-', '')
+            prefix = '-'
+
+        if '.' in string:
+            string, decimal_part = str(string).split('.')
+
+            if decimal_part == "0" and string == "0":
+                string = "0"
+            else:
+                string = "." if string == "0" else f"{string}"
+
+            if decimal_part != '0':
+                if '.' not in string:
+                    string += '.'
+
+                string += f'{decimal_part}'
+
+        string = prefix + string
+
+        strings.append(string)
+
+    if len(strings) == 1:
+        strings = [strings[0]]
+
+    return strings

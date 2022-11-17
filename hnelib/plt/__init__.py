@@ -17,100 +17,6 @@ import pandas as pd
 import itertools
 from scipy.stats import pearsonr
 
-import hnelib.color
-
-
-#--------------------------------[ dimensions ]--------------------------------#
-SUBPLOT_SIZE = 3.54331
-
-# Nature guidelines:
-# - 1 col: 89mm/3.50394in wide
-# - 2 col: 183mm/7.20472in wide
-ONE_COL_WIDTH = 3.50394
-TWO_COL_WIDTH = 7.20472
-
-
-def _get_dims():
-    dims = {}
-
-    subplot_sizes = [i * SUBPLOT_SIZE for i in range(1, 11)]
-    for i, width in enumerate(subplot_sizes):
-        dims[i] = width
-
-        for j, height in enumerate(subplot_sizes):
-            dims[(i, j)] = (width, height)
-
-    return dims
-
-
-__DIMS_SET__ = False
-DIMS = _get_dims()
-
-#--------------------------------[ fontsizes ]---------------------------------#
-ADJECTIVE_FONTSIZES = {
-    'small': 5,
-    'medium': 6,
-    'large': 7,
-    'huge': 8,
-}
-
-PLOT_ELEMENT_FONTSIZES = {
-    'annotation': 'small',
-    'tick': 'medium',
-    'legend': 'medium',
-    'axis': 'large',
-    'title': 'huge',
-    'subplot-label': 'huge',
-}
-
-def _get_fontsizes():
-    fontsizes = ADJECTIVE_FONTSIZES.copy()
-    for element, adjective in PLOT_ELEMENT_FONTSIZES.items():
-        fontsizes[element] = ADJECTIVE_FONTSIZES[adjective]
-
-    return fontsizes
-
-FONTSIZES = _get_fontsizes()
-
-
-#----------------------------------[ arrows ]----------------------------------#
-BASIC_ARROW_PROPS = {
-    'lw': .35,
-    'color': hnelib.color.C['dark_gray'],
-    'arrowstyle': '->, head_width=.15, head_length=.21',
-}
-
-ZERO_SHRINK_A_ARROW_PROPS = {
-    **BASIC_ARROW_PROPS,
-    'shrinkA': 0,
-}
-
-HEADLESS_ARROW_PROPS = {
-    'lw': .35,
-    'color': hnelib.color.C['dark_gray'],
-    'arrowstyle': '-',
-    'shrinkA': 0,
-    'shrinkB': 0,
-}
-
-
-def annotate(ax, text, xy_loc=(.1, .9), annotate_kwargs={}):
-    x_fraction, y_fraction = xy_loc
-    x_min, x_max = ax.get_xlim()
-    y_min, y_max = ax.get_ylim()
-
-    x = x_min + x_fraction * (x_max - x_min)
-    y = y_min + y_fraction * (y_max - y_min)
-
-    ax.annotate(
-        text,
-        (x, y),
-        va='center',
-        ha='left',
-        annotation_clip=False,
-        **annotate_kwargs,
-    )
-
 
 def annotate_pearson(ax, xs, ys, xy_loc=(.1, .9), annotate_kwargs={}):
     x_fraction, y_fraction = xy_loc
@@ -130,112 +36,23 @@ def annotate_pearson(ax, xs, ys, xy_loc=(.1, .9), annotate_kwargs={}):
         **annotate_kwargs,
     )
 
-def set_lim_to_max(axes, axis='x'):
-    get_fns = [getattr(ax, f'get_{axis}lim', None) for ax in axes]
 
-    if all(get_fns):
-        lims = list(itertools.chain.from_iterable([get_fn() for get_fn in get_fns]))
-        _min, _max = min(lims), max(lims)
+def text_fraction_label(numerator, denominator, convert_hyphens=True):
+    text = r"$\frac{\mathrm{" + numerator + "}}{\mathrm{" + denominator + "}}$"
 
-        for ax in axes:
-            getattr(ax, f'set_{axis}lim')(_min, _max)
+    text = text.replace(' ', '\ ')
 
-def set_lims_to_max(axes, x=True, y=True, z=True):
-    if x:
-        set_lim_to_max(axes, 'x')
+    if convert_hyphens:
+        text = text.replace("-", u"\u2010")
 
-    if y:
-        set_lim_to_max(axes, 'y')
-
-    if z:
-        set_lim_to_max(axes, 'z')
-
-def square_axis(ax):
-    x_min, x_max = ax.get_xlim()
-    y_min, y_max = ax.get_ylim()
-
-    max_max = max(x_max, y_max)
-    min_min = max(x_min, y_min)
-
-    ax.set_xlim(min_min, max_max)
-    ax.set_ylim(min_min, max_max)
+    return text
 
 
-def add_gridlines_on_ticks(ax, x=True, y=True, **kwargs):
-    xs = ax.get_xticks() if x else []
-    ys = ax.get_yticks() if y else []
-
-    add_gridlines(ax, xs=xs, ys=ys, **kwargs)
-
-
-def add_gridlines(ax, xs=[], ys=[], color=hnelib.color.C['dark-gray'], zorder=1, alpha=.5, lw=.5, **kwargs):
-    """
-    adds gridlines to the plot
-    """
-    xlim = ax.get_xlim()
-    ylim = ax.get_ylim()
-
-    for x in xs:
-        ax.axvline(
-            x,
-            color=color,
-            zorder=zorder,
-            alpha=.5,
-            lw=lw,
-            **kwargs,
-        )
-
-    for y in ys:
-        ax.axhline(
-            y,
-            color=color,
-            zorder=zorder,
-            alpha=.5,
-            lw=lw,
-            **kwargs,
-        )
-
-    ax.set_xlim(xlim)
-    ax.set_ylim(ylim)
-
-
-def hide_axis(ax):
-    ax.set_frame_on(False)
-    ax.set_xticks([])
-    ax.set_yticks([])
-
-
-def stringify_numbers_without_ugly_zeros(numbers):
-    strings = []
-    for number in numbers:
-        string = str(number)
-
-        prefix = ''
-        if '-' in string:
-            string = string.replace('-', '')
-            prefix = '-'
-
-        if '.' in string:
-            string, decimal_part = str(string).split('.')
-
-            if decimal_part == "0" and string == "0":
-                string = "0"
-            else:
-                string = "." if string == "0" else f"{string}"
-
-            if decimal_part != '0':
-                if '.' not in string:
-                    string += '.'
-
-                string += f'{decimal_part}'
-
-        string = prefix + string
-
-        strings.append(string)
-
-    return strings
-
-
+#------------------------------------------------------------------------------#
+#                                                                              #
+#                              plotting functions                              #
+#                                                                              #
+#------------------------------------------------------------------------------#
 def plot_connected_scatter(ax, df, x_column, y_column, color, s=12, lw=.65):
     df = df.copy()
     df = df.sort_values(by=x_column)
@@ -310,126 +127,8 @@ def plot_disconnected_scatter(ax, df, x_column, y_column, color, s=4, lw=1.5):
     )
 
 
-def annotate_plot_letters(
-    axes,
-    x_pads,
-    y_pad=1.15,
-    fontsize=FONTSIZES['subplot-label'],
-    labels=[],
-    horizontal_alignments=[],
-):
-    import string
-
-    if not horizontal_alignments:
-        horizontal_alignments = ['left' for i in range(len(axes))]
-
-    if not labels:
-        labels = list(string.ascii_uppercase)[:len(axes)]
-
-    for ax, label, x_pad, ha in zip(axes, labels, x_pads, horizontal_alignments):
-        ax.text(
-            x_pad,
-            y_pad,
-            label.lower(),
-            transform=ax.transAxes,
-            fontname='Arial',
-            fontsize=fontsize,
-            fontweight='bold',
-            va='top',
-            ha=ha,
-        )
-
-
-def set_axis_text(
-    ax,
-    df,
-    tick_col,
-    label_col=None,
-    color_col=None,
-    which='x',
-):
-    set_ticks = getattr(ax, f"set_{which}ticks")
-    set_labels = getattr(ax, f"set_{which}ticklabels")
-    get_labels = getattr(ax, f"get_{which}ticklabels")
-
-    cols = [tick_col]
-
-    if label_col:
-        cols.append(label_col)
-
-    if color_col:
-        cols.append(color_col)
-
-    df = df.copy()[cols].drop_duplicates()
-
-    set_ticks(df[tick_col])
-
-    if label_col:
-        set_labels(df[label_col])
-
-    if color_col:
-        for color, tick in zip(df[color_col], get_labels()):
-            tick.set_color(color)
-
-def set_x_text(*args, **kwargs):
-    set_axis_text(*args, which='x', **kwargs)
-
-
-def set_y_text(*args, **kwargs):
-    set_axis_text(*args, which='y', **kwargs)
-
-
-def set_label_fontsize(axes, fontsize):
-    for ax in axes:
-        ylabel = ax.get_ylabel()
-
-        if ylabel:
-            ax.set_ylabel(ylabel, size=fontsize)
-
-        xlabel = ax.get_xlabel()
-
-        if xlabel:
-            ax.set_xlabel(xlabel, size=fontsize)
-
-
-def set_ticklabel_fontsize(axes, fontsize):
-    for ax in axes:
-        ax.tick_params(axis='both', which='major', labelsize=fontsize)
-
-
-def finalize(
-    axes,
-    plot_label_x_pads=[],
-    plot_label_y_pad=1.15,
-    axis_fontsize=FONTSIZES['axis'],
-    tick_fontsize=FONTSIZES['tick'],
-    plot_letters_fontsize=FONTSIZES['subplot-label'],
-):
-    if not isinstance(axes, list) and not isinstance(axes, np.ndarray):
-        axes = [axes]
-
-    if plot_label_x_pads:
-        annotate_plot_letters(axes, plot_label_x_pads, y_pad=plot_label_y_pad, fontsize=plot_letters_fontsize)
-
-    set_label_fontsize(axes, fontsize=axis_fontsize)
-    set_ticklabel_fontsize(axes, fontsize=tick_fontsize)
-
-
-def text_fraction_label(numerator, denominator, convert_hyphens=True):
-    text = r"$\frac{\mathrm{" + numerator + "}}{\mathrm{" + denominator + "}}$"
-
-    text = text.replace(' ', '\ ')
-
-    if convert_hyphens:
-        text = text.replace("-", u"\u2010")
-
-    return text
-
-
 #------------------------------------------------------------------------------#
-#                                                                              #
-#                              plotting functions                              #
-#                                                                              #
+#                                     bar                                      #
 #------------------------------------------------------------------------------#
 def bar_plot(
     ax,
@@ -679,3 +378,4 @@ def grouped_bar_plot(
             lw=.5,
             zorder=0,
         )
+
