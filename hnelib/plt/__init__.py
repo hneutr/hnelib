@@ -586,7 +586,7 @@ def ultibar_plot(
     if len(df):
         ax.set_xlim(min(df['X']) - margin, max(df['X']) + margin)
 
-    for group in sorted(df['Group'].unique()):
+    for group in sorted(df['GroupOrder'].unique()):
         if not group:
             continue
 
