@@ -12,7 +12,6 @@ __ADJECTIVES__ = {
     'xl': 8,
 }
 
-__ADJECTIVES__ = {
 __PLOT_ELEMENTS__ = {
     'annotation': 's',
     'tick': 'm',

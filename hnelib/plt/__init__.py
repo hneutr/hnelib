@@ -17,9 +17,11 @@ import pandas as pd
 import itertools
 from scipy.stats import pearsonr
 
-import hnelib.plt.dims as dims
-import hnelib.plt.ax
 import hnelib.pd.util
+
+import hnelib.plt.dims as dims
+import hnelib.plt.font
+import hnelib.plt.ax
 
 
 def annotate_pearson(ax, xs, ys, xy_loc=(.1, .9), annotate_kwargs={}):
