@@ -494,26 +494,6 @@ def ultibar_plot(
     if 'Stack' not in cols:
         df['Stack'] = df['Bar']
 
-    bottoms = []
-    for stack, bars in df.groupby('Stack'):
-        bottom = 0
-        for i, row in bars.sort_values(by='BarOrder').iterrows():
-            bottoms.append({
-                'Stack': stack,
-                'Bar': row['Bar'],
-                'BarBottom': bottom,
-            })
-
-            bottom += row['Y']
-
-    df = df.merge(
-        pd.DataFrame(bottoms),
-        on=[
-            'Bar',
-            'Stack',
-        ]
-    )
-
     if 'StackOrder' not in cols:
         stacks = sorted(df['Stack'].unique())
         df['StackOrder'] = df['Stack'].apply(stacks.index)
@@ -527,6 +507,28 @@ def ultibar_plot(
 
     group_size = group_pad + df['Stack'].nunique()
     df['X'] = df['GroupOrder'] * group_size + group_pad + df['StackOrder']
+
+    bottoms = []
+    for (group, stack), bars in df.groupby(['Group', 'Stack']):
+        bottom = 0
+        for i, row in bars.sort_values(by='BarOrder').iterrows():
+            bottoms.append({
+                'Group': group,
+                'Stack': stack,
+                'Bar': row['Bar'],
+                'BarBottom': bottom,
+            })
+
+            bottom += row['Y']
+
+    df = df.merge(
+        pd.DataFrame(bottoms),
+        on=[
+            'Bar',
+            'Stack',
+            'Group',
+        ]
+    )
 
     if 'Color' in cols:
         df['FaceColor'] = df['Color']
