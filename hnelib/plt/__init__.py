@@ -443,6 +443,7 @@ def ultibar_plot(
     bar_col=None,
     bar_order_col=None,
     bar_color_col=None,
+    bar_edge_color_col=None,
     bar_hatch_col=None,
     bar_annotation_col=None,
     annotate_bar_col=None,
@@ -465,6 +466,7 @@ def ultibar_plot(
         'Bar': bar_col,
         'BarOrder': bar_order_col,
         'BarColor': bar_color_col,
+        'BarEdgeColor': bar_edge_color_col,
         'BarHatch': bar_hatch_col,
         'BarAnnotation': bar_annotation_col,
         'AnnotateBar': annotate_bar_col,
@@ -536,7 +538,7 @@ def ultibar_plot(
         if fade_bar_facecolor:
             df['FaceColor'] = df['FaceColor'].apply(hnelib.color.set_alpha)
 
-        draw_kwargs['edgecolor'] = df['BarColor']
+        draw_kwargs['edgecolor'] = df['BarEdgeColor'] if 'BarEdgeColor' in cols else df['BarColor']
         draw_kwargs['color'] = df['FaceColor']
 
     if 'Hatch' in df.columns:
