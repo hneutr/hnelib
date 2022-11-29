@@ -17,6 +17,8 @@ import pandas as pd
 import itertools
 from scipy.stats import pearsonr
 
+import hnelib.plt.dims as dims
+
 
 def annotate_pearson(ax, xs, ys, xy_loc=(.1, .9), annotate_kwargs={}):
     x_fraction, y_fraction = xy_loc
