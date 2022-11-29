@@ -592,7 +592,7 @@ def ultibar_plot(
 
         x = group * group_size - group_pad / 2
 
-        ax.axvline(
+        hnelib.plt.ax.axvline(
             x,
             color=hnelib.color.C['dark_gray'],
             lw=.5,
