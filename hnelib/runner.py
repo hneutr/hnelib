@@ -29,6 +29,9 @@ class AmbiguousExpansionQuery(Exception):
 class MultipleExpansionsFound(Exception):
     pass
 
+class ExpansionNotFound(Exception):
+    pass
+
 
 class Expansion(object):
     SHORT_NAME = 'expansion'
