@@ -530,13 +530,13 @@ def ultibar_plot(
         ]
     )
 
-    if 'Color' in cols:
-        df['FaceColor'] = df['Color']
+    if 'BarColor' in cols:
+        df['FaceColor'] = df['BarColor']
 
         if fade_facecolor:
             df['FaceColor'] = df['FaceColor'].apply(hnelib.color.set_alpha)
 
-        draw_kwargs['edgecolor'] = df['Color']
+        draw_kwargs['edgecolor'] = df['BarColor']
         draw_kwargs['color'] = df['FaceColor']
 
     if 'Hatch' in df.columns:
