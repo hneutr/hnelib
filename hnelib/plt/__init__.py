@@ -478,6 +478,9 @@ def ultibar_plot(
     grouped = 'Group' in cols
     group_pad = group_pad if grouped else 0
 
+    if 'Bar' not in cols:
+        df['Bar'] = [i for i in range(len(df))]
+
     if 'BarOrder' not in cols:
         bars = sorted(df['Bar'].unique())
         df['BarOrder'] = df['Bar'].apply(bars.index)
