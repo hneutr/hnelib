@@ -533,7 +533,7 @@ def ultibar_plot(
     if 'BarColor' in cols:
         df['FaceColor'] = df['BarColor']
 
-        if fade_facecolor:
+        if fade_bar_facecolor:
             df['FaceColor'] = df['FaceColor'].apply(hnelib.color.set_alpha)
 
         draw_kwargs['edgecolor'] = df['BarColor']
