@@ -18,6 +18,7 @@ import itertools
 from scipy.stats import pearsonr
 
 import hnelib.plt.dims as dims
+import hnelib.plt.ax
 import hnelib.pd.util
 
 
@@ -569,7 +570,7 @@ def ultibar_plot(
     if 'Label' in df.columns:
         df['LabelX'] = df.groupby('Group')['X'].transform('mean')
 
-        set_x_text(
+        hnelib.plt.ax.set_x_text(
             ax,
             df,
             tick_col='LabelX',
