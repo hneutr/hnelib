@@ -543,6 +543,8 @@ def ultibar_plot(
         draw_kwargs['color'] = 'none'
         draw_kwargs['hatch'] = df['Hatch']
 
+    print(draw_kwargs)
+
     ax.bar(
         df['X'],
         df['Y'],
