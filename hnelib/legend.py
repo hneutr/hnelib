@@ -9,7 +9,7 @@ import hnelib.color
 LINEWIDTH = .5
 
 
-def set_legend(
+def set(
     ax,
     handles,
     **kwargs,
@@ -23,7 +23,7 @@ def set_legend(
 
 
 def set_handle_text_colors(legend, handles):
-    text_colors = {str(h.text): h.color for h in handles if h.color}
+    text_colors = {str(h.text): h.textcolor for h in handles if hasattr(h, 'textcolor')}
 
     for handle in legend.get_texts():
         text = str(handle.get_text())
@@ -57,6 +57,7 @@ class Handle(object):
             'label': text
         }
 
+        self.set_textcolor()
         self.set_facecolor()
 
         for k, v in kwargs.items():
@@ -64,8 +65,11 @@ class Handle(object):
                 artist_key = self.ARTIST_KEYS.get(k, k)
                 self.kwargs[artist_key] = v
 
+    def set_textcolor(self):
+        self.textcolor = getattr(self, 'color', 'black')
+
     def set_facecolor(self):
-        facecolor = getattr(self, 'facecolor', getattr(self, 'color'))
+        facecolor = getattr(self, 'facecolor', getattr(self, 'color', None))
 
         if self.fade_facecolor and facecolor:
             facecolor = hnelib.color.set_alpha(facecolor)
@@ -85,6 +89,23 @@ class Line(Handle):
     @cached_property
     def artist(self):
         return matplotlib.lines.Line2D([0], [0], **self.kwargs)
+
+
+class Text(Handle):
+    DEFAULTS = {
+        **Handle.DEFAULTS,
+        'color': 'w',
+    }
+
+    def set_facecolor(self):
+        self.facecolor = None
+
+    def set_textcolor(self):
+        self.textcolor = 'black'
+
+    @cached_property
+    def artist(self):
+        return matplotlib.lines.Line2D([], [], **self.kwargs)
 
 
 class Marker(Handle):

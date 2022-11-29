@@ -9,7 +9,7 @@ import hnelib.plt.color
 LINEWIDTH = .5
 
 
-def set_legend(
+def set(
     ax,
     handles,
     **kwargs,

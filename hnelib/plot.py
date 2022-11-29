@@ -354,20 +354,20 @@ def set_axis_text(
 
     cols = [tick_col]
 
-    if label_col:
+    if label_col in df.columns:
         cols.append(label_col)
 
-    if color_col:
+    if color_col in df.columns:
         cols.append(color_col)
 
     df = df.copy()[cols].drop_duplicates()
 
     set_ticks(df[tick_col])
 
-    if label_col:
+    if label_col in df.columns:
         set_labels(df[label_col])
 
-    if color_col:
+    if color_col in df.columns:
         for color, tick in zip(df[color_col], get_labels()):
             tick.set_color(color)
 
@@ -560,6 +560,7 @@ def stacked_bar_plot(
     bottoms = []
     for stack, bars in df.groupby('Stack'):
         bottom = 0
+
         for i, row in bars.sort_values(by='BarOrder').iterrows():
             bottoms.append({
                 'Stack': stack,
@@ -593,6 +594,18 @@ def stacked_bar_plot(
             fade_facecolor=fade_bar_facecolor,
             draw_kwargs=draw_kwargs,
         )
+
+    if len(df):
+        ax.set_xlim(-.5, df['StackX'].nunique() - .5)
+
+    set_x_text(
+        ax,
+        df,
+        tick_col='StackX',
+        label_col='StackLabel',
+        color_col='StackLabelColor',
+    )
+
 
 def grouped_bar_plot(
     ax,
@@ -662,12 +675,12 @@ def grouped_bar_plot(
             df,
             tick_col='GroupTick',
             label_col='GroupLabel',
-            color_col='GroupLabelColor',
+            color_col='GroupLabelColor' if 'GroupLabelColor' in df.columns else None,
         )
 
     ax.set_xlim(min(df['X']) - 1.5 * group_pad, max(df['X']) + 1.5 * group_pad)
 
-    for group in sorted(list(df['Group'].unique())):
+    for group in sorted(list(df['GroupOrder'].unique())):
         if not group:
             continue
 

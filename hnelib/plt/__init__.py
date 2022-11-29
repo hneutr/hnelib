@@ -379,3 +379,213 @@ def grouped_bar_plot(
             zorder=0,
         )
 
+
+#-------------------------------------------------------------------------------
+# TESTING: combo bar plot. supports:
+# - bars
+# - stacks
+# - groups
+#-------------------------------------------------------------------------------
+# a bar is a rectangle. has:
+# - height
+# ~ id
+# ~ x
+# ~ color
+# ~ hatch
+# ~ bottom
+# ~ order
+# ~ annotation
+# ~ should_annotate
+
+# ~ label
+# ~ label color
+#-------------------------------------------------------------------------------
+# a stack is a vertical grouping of bars. has:
+# - id
+# ~ x
+# ~ order
+# 
+# ~ label
+# ~ label color
+#-------------------------------------------------------------------------------
+# a group is a horizontal grouping of bars/stacks. has:
+# - id
+# ~ x
+# ~ order
+#
+# ~ label
+# ~ label color
+
+# groups also have:
+# ~ group pad
+#-------------------------------------------------------------------------------
+# labeling logic:
+# - if there are groups, label the groups
+# - elif there are stacks, label the stacks
+# - elif label the bars
+#
+# additional labels:
+# - if groups:
+#   - if stacks:
+#       - support labelling stacks
+#   - support labelling bars
+def ultibar_plot(
+    ax,
+    df,
+    # bar args
+    bar_height_col,
+    bar_col=None,
+    bar_order_col=None,
+    bar_color_col=None,
+    bar_hatch_col=None,
+    bar_annotation_col=None,
+    annotate_bar_col=None,
+    fade_bar_facecolor=True,
+    # stack args
+    stack_col=None,
+    stack_order_col=None,
+    # group args
+    group_col=None,
+    group_order_col=None,
+    group_pad=.5,
+    # label args
+    label_col=None,
+    label_color_col=None,
+    # etc
+    draw_kwargs={},
+):
+    df = hnelib.pd.util.rename_df(df, {
+        'Y': bar_height_col,
+        'Bar': bar_col,
+        'BarOrder': bar_order_col,
+        'BarColor': bar_color_col,
+        'BarHatch': bar_hatch_col,
+        'BarAnnotation': bar_annotation_col,
+        'AnnotateBar': annotate_bar_col,
+        # stack args
+        'Stack': stack_col,
+        'StackOrder': stack_order_col,
+        # group args
+        'Group': group_col,
+        'GroupOrder': group_order_col,
+        # label args
+        'Label': label_col,
+        'LabelColor': label_color_col,
+    })
+
+    cols = df.columns
+    stacked = 'Stack' in cols
+    grouped = 'Group' in cols
+    group_pad = group_pad if grouped else 0
+
+    if 'BarOrder' not in cols:
+        bars = sorted(df['Bar'].unique())
+        df['BarOrder'] = df['Bar'].apply(bars.index)
+
+    if 'Stack' not in cols:
+        df['Stack'] = df['Bar']
+
+    bottoms = []
+    for stack, bars in df.groupby('Stack'):
+        bottom = 0
+        for i, row in bars.sort_values(by='BarOrder').iterrows():
+            bottoms.append({
+                'Stack': stack,
+                'Bar': row['Bar'],
+                'BarBottom': bottom,
+            })
+
+            bottom += row['Value']
+
+    df = df.merge(
+        pd.DataFrame(bottoms),
+        on=[
+            'Bar',
+            'Stack',
+        ]
+    )
+
+    if 'StackOrder' not in cols:
+        stacks = sorted(df['Stack'].unique())
+        df['StackOrder'] = df['Stack'].apply(stacks.index)
+
+    if 'Group' not in cols:
+        df['Group'] = df['Stack']
+
+    if 'GroupOrder' not in cols:
+        groups = sorted(df['Group'].unique())
+        df['GroupOrder'] = df['Group'].apply(groups.index)
+
+    group_size = group_pad + df['Stack'].nunique()
+    df['X'] = df['GroupOrder'] * group_size + group_pad + df['StackOrder']
+
+    if 'Color' in cols:
+        df['FaceColor'] = df['Color']
+
+        if fade_facecolor:
+            df['FaceColor'] = df['FaceColor'].apply(hnelib.color.set_alpha)
+
+        draw_kwargs['edgecolor'] = df['Color']
+        draw_kwargs['color'] = df['FaceColor']
+
+    if 'Hatch' in df.columns:
+        draw_kwargs['color'] = 'none'
+        draw_kwargs['hatch'] = df['Hatch']
+
+    ax.bar(
+        df['X'],
+        df['Y'],
+        zorder=2,
+        bottom=df['BarBottom'],
+        **draw_kwargs,
+    )
+
+    if 'Annotation' in cols:
+        annotations = df.copy()
+
+        if 'Annotate' in cols:
+            annotations = annotations[
+                annotations['Annotate']
+            ]
+
+        annotations['Y'] /= 2
+        annotations['Y'] += annotations['BarBottom']
+
+        for i, row in annotations.iterrows():
+            ax.annotate(
+                row['Annotation'],
+                (row['X'], row['Y']),
+                ha='center',
+                va='center',
+                zorder=3,
+            )
+
+    if 'Label' in df.columns:
+        df['LabelX'] = df.groupby('Group')['X'].transform('mean')
+
+        set_x_text(
+            ax,
+            df,
+            tick_col='LabelX',
+            label_col='Label',
+            color_col='LabelColor',
+        )
+
+
+    margin = max(.5, 1.5 * group_pad)
+
+    if len(df):
+        ax.set_xlim(min(df['X']) - margin, max(df['X']) + margin)
+
+    for group in sorted(df['Group'].unique()):
+        if not group:
+            continue
+
+        x = group * group_size - group_pad / 2
+
+        ax.axvline(
+            x,
+            color=hnelib.color.C['dark_gray'],
+            lw=.5,
+            zorder=0,
+        )
