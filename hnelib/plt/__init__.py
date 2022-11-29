@@ -501,7 +501,7 @@ def ultibar_plot(
                 'BarBottom': bottom,
             })
 
-            bottom += row['Value']
+            bottom += row['Y']
 
     df = df.merge(
         pd.DataFrame(bottoms),
