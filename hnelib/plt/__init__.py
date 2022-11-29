@@ -21,7 +21,7 @@ import hnelib.pd.util
 
 import hnelib.plt.dims as dims
 import hnelib.plt.font
-import hnelib.plt.ax
+import hnelib.plt.ax as hnelib_ax
 
 
 def annotate_pearson(ax, xs, ys, xy_loc=(.1, .9), annotate_kwargs={}):
@@ -572,7 +572,7 @@ def ultibar_plot(
     if 'Label' in df.columns:
         df['LabelX'] = df.groupby('Group')['X'].transform('mean')
 
-        hnelib.plt.ax.set_x_text(
+        hnelib_ax.set_x_text(
             ax,
             df,
             tick_col='LabelX',
@@ -592,7 +592,7 @@ def ultibar_plot(
 
         x = group * group_size - group_pad / 2
 
-        hnelib.plt.ax.axvline(
+        hnelib_ax.axvline(
             x,
             color=hnelib.color.C['dark_gray'],
             lw=.5,
