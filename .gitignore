@@ -1,10 +1,6 @@
 dist
-mvr.egg-info
-env
-*/__pycache__
-.eggs
 hnelib.egg-info
+env
+**/__pycache__
+.eggs
 tests/results
-results
-hnelib/pd/__pycache__
-hnelib/stat/__pycache__

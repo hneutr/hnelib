@@ -1,5 +1,3 @@
-import itertools
-
 """
 Nature guidelines on widths:
 - 1 col: 89mm
@@ -9,36 +7,36 @@ Nature guidelines on widths:
 - large: 136mm
 - 2 col: 183mm
 """
-MMS = {
-    '.5': 44,
-    '1': 89,
-    '1.5': 136,
-    "1.5s": 120,
-    "1.5m": 128,
-    "1.5l": 136,
-    '2': 183,
+import itertools
+import functools
+
+DIMS_IN_MMS = {
+    .5: 44,
+    1: 89,
+    1.5: 136,
+    2: 183,
+    # "1.5s": 120,
+    # "1.5m": 128,
+    # "1.5l": 136,
 }
 
 
-D = {}
+MMS_PER_INCH = 25.4
 
 
-__MMS_PER_INCH__ = 25.4
+def __mms_to_inch__(mms):
+    return round(mms / MMS_PER_INCH, 2)
 
 
-def __mm_to_inch__(mms):
-    return round(mms / __MMS_PER_INCH__, 2)
-
-
-def __setup__():
-    global MMS, D
-
-    D = {k: __mm_to_inch__(v) for k, v in MMS.items()}
+@functools.lru_cache
+def __get_dims__():
+    dims = {k: __mms_to_inch__(v) for k, v in DIMS_IN_MMS.items()}
 
     # sizes = list(D.keys())
-    for k_w, k_h in itertools.product(D, D):
-        D[f"{k_w}, {k_h}"] = (D[k_w], D[k_h])
+    for k_w, k_h in itertools.product(dims, dims):
+        dims[(k_w, k_h)] = (dims[k_w], dims[k_h])
+
+    return dims
 
 
-if not len(D):
-    __setup__()
+dims = __get_dims__()

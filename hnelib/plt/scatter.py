@@ -1,4 +1,4 @@
-import hnelib.pd.utils
+import hnelib.pd.util
 
 
 LINEWIDTH = .65
@@ -34,7 +34,7 @@ def connected(
     for col in sort_cols + groupby_cols:
         col_remap[col] = col
 
-    df = hnelib.pd.utils.rename_df(df, col_remap)
+    df = hnelib.pd.util.rename_df(df, col_remap)
     df, groupby_cols = hnelib.pd.util.get_groupby_cols(df, groupby_cols)
 
     scatter_kwargs = {
@@ -53,7 +53,7 @@ def connected(
             df['FaceColor'] = df['Color']
 
         if fade_facecolor:
-            df['FaceColor'] = df['FaceColor'].apply(hnelib.color.set_alpha)
+            df['FaceColor'] = df['FaceColor'].apply(hnelib.plt.color.set_alpha)
 
         scatter_kwargs['edgecolor'] = df['Color']
         scatter_kwargs['facecolor'] = df['FaceColor']
@@ -92,7 +92,7 @@ def connected(
 # def plot_disconnected_scatter(ax, df, x_column, y_column, color, s=4, lw=1.5):
 #     df = df.copy()
 #     df = df.sort_values(by=x_column)
-#     faded_color = hnelib.color.set_alpha(color, .75)
+#     faded_color = hnelib.plt.color.set_alpha(color, .75)
 #
 #     big_s = s * 2
 #     small_s = s - 3

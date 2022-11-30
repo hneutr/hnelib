@@ -1,19 +1,28 @@
+import functools
 import matplotlib.colors
 
-import hnelib.utils
+import hnelib.util
 
 #------------------------------------------------------------------------------#
 #                                                                              #
 #                                  constants                                   #
 #                                                                              #
 #------------------------------------------------------------------------------#
-ALPHA = .35
+alpha = .35
+
+cycle = [
+    '#45A1F8',
+    '#FF6437', 
+    '#4B917D',
+    '#F037A5',
+    '#2EBD59',
+    '#FFC864',
+    '#C87D55',
+    '#1E3264',
+]
 
 # grayscale
-GS = {
-    'w': ""
-    '0': 
-
+grayscale = {
     # white
     "w": "#FFFFFF",
     "w+": "#D7D7D7",
@@ -33,24 +42,30 @@ GS = {
     "b": "#000000",
 }
 
-DEFAULT = GS['g']
+grayscale = [
+    # white
+    "#FFFFFF",
+    "#D7D7D7",
+    # light gray
+    "#AFAFAF",
+    "#868686",
+    # gray
+    "#5E5E5E",
+    "#474747",
+    # dark gray
+    "#2F2F2F",
+    "#181818",
+    # black
+    "#000000",
+]
 
-C = {
-    # default color
-    '-': GS['g'],
-    # grayscale
-    'white': GS['w'],
-    'light gray': GS['lg'],
-    'gray': GS['g'],
-    'dark gray': GS['dg'],
-    'black': GS['b'],
-    # colors
-    '1': '#45A1F8',
-    '2': '#FF6437', 
+named_grayscale = {
+    'white': grayscale[0],
+    'light gray': grayscale[2],
+    'gray': grayscale[4],
+    'dark gray': grayscale[6],
+    'black': grayscale[8],
 }
-
-# low-alpha colors
-FC = {}
 
 
 #------------------------------------------------------------------------------#
@@ -58,11 +73,11 @@ FC = {}
 #                                  functions                                   #
 #                                                                              #
 #------------------------------------------------------------------------------#
-def set_alpha(colors, alpha=ALPHA):
+def set_alpha(colors, alpha=alpha):
     """
     takes colors (single or list) and applies an alpha to them.
     """
-    colors = hnelib.utils.as_list(colors)
+    colors = hnelib.util.as_list(colors)
 
     new_colors = [matplotlib.colors.to_rgba(c, alpha) for c in colors]
 
@@ -77,11 +92,16 @@ def set_alpha(colors, alpha=ALPHA):
 #                                 module setup                                 #
 #                                                                              #
 #------------------------------------------------------------------------------#
-def __setup__():
-    global C, FC
+@functools.lru_cache
+def __get_faded_colors__():
+    return {k: set_alpha(v) for k, v in colors.items()}
 
-    FC = {k: set_alpha(v) for k, v in C.items()}
-    
+colors = {
+    # default color
+    '-': named_grayscale['gray'],
+    **named_grayscale,
+    **{i: c for i, c in enumerate(cycle)}
+}
 
-if not len(FC):
-    __setup__()
+# low-alpha colors
+faded_colors = __get_faded_colors__()

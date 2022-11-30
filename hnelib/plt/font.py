@@ -4,32 +4,28 @@ Nature guidelines on fonts:
 - max: 7pt
 - min: 5pt
 """
-
-__ADJECTIVES__ = {
+__size__ = {
     's': 5,
     'm': 6,
     'l': 7,
     'xl': 8,
 }
 
-__PLOT_ELEMENTS__ = {
-    'annotation': 's',
-    'tick': 'm',
-    'legend': 'm',
-    'axis': 'l',
-    'title': 'xl',
-    'subplot-label': 'xl',
+size = {
+    **__size__,
+    # plot elements
+    'annotation': __size__['s'],
+    'tick': __size__['m'],
+    'legend': __size__['m'],
+    'axis_label': __size__['l'],
+    'title': __size__['xl'],
+    'subplot_label': __size__['xl'],
 }
 
-# S is for size
-S = {}
+weight = {
+    'subplot_label': 'bold',
+}
 
-def __setup__():
-    global __ADJECTIVES__, __PLOT_ELEMENTS__, S
-
-    S = __ADJECTIVES__.copy()
-    S.update({k: S[v] for k, v in __PLOT_ELEMENTS__.items()})
-
-
-if not len(S):
-    __setup__()
+name = {
+    'subplot_label': 'Arial',
+}

@@ -2,7 +2,7 @@ import pandas as pd
 import statsmodels.api as sm
 
 import hnelib.pd.util
-import hnelib.utils
+import hnelib.util
 
 
 CONST_COL = 'const'
@@ -15,7 +15,7 @@ def get_logits(
     add_constant=True,
     groupby_cols=None,
 ):
-    exog = hnelib.utils.as_list(exog)
+    exog = hnelib.util.as_list(exog)
 
     df, groupby_cols = hnelib.pd.get_groupby_cols(df, groupby_cols)
 

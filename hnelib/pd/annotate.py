@@ -1,14 +1,14 @@
 import pandas as pd
 import numpy as np
 
-import hnelib.utils
+import hnelib.util
 import hnelib.pd.util
 
 COL = 'Value'
 
 
 def _add_annotations(df, annotations, join_cols):
-    join_cols = hnelib.utils.as_list(join_cols)
+    join_cols = hnelib.util.as_list(join_cols)
 
     if isinstance(annotations, list):
         if len(annotations) and isinstance(annotations[0], pd.DataFrame):
@@ -78,7 +78,7 @@ def percentiles(
 ):
     df, groupby_cols = hnelib.pd.util.get_groupby_cols(df, groupby_cols)
 
-    value_to_col = {p: to_col_prefix + hnelib.utils.add_ordinal_indicator(p) for p in values}
+    value_to_col = {p: to_col_prefix + hnelib.util.add_ordinal_indicator(p) for p in values}
 
     annotations = []
     for _, rows in df.groupby(groupby_cols):
@@ -173,7 +173,7 @@ def multiple_hypothesis_corrected_pvalue(
 ):
     import hnelib.stat
     to_col = to_col or col
-    hypothesis_cols = hnelib.utils.as_list(hypothesis_cols)
+    hypothesis_cols = hnelib.util.as_list(hypothesis_cols)
 
     df, groupby_cols = hnelib.pd.util.get_groupby_cols(df, groupby_cols)
 

@@ -1,24 +1,33 @@
-import hnelib.plt.ax
+import hnelib.plt.axes
 
 def set_one_to_max(axes, axis='x'):
-    get_fns = [hnelib.plt.ax.get_fn(ax, fn_suffix='lim', axis=axis)]
+    get_fns = [hnelib.plt.axes.get_fn(ax, fn_suffix='lim', axis=axis)]
 
     if all(get_fns):
         lims = list(itertools.chain.from_iterable([fn() for fn in get_fns]))
         _min, _max = min(lims), max(lims)
 
         for ax in axes:
-            hnelib.plt.ax.set_fn(ax, fn_suffix='lim', axis=axis)(_min, _max)
+            hnelib.plt.axes.set_fn(ax, fn_suffix='lim', axis=axis)(_min, _max)
+
+def set_x_to_max(axes):
+    set_lim_to_max(axes, 'x')
+
+def set_y_to_max(axes):
+    set_lim_to_max(axes, 'y')
+
+def set_z_to_max(axes):
+    set_lim_to_max(axes, 'z')
 
 def set_to_max(axes, x=True, y=True, z=True):
     if x:
-        set_lim_to_max(axes, 'x')
+        set_x_to_max(axes)
 
     if y:
-        set_lim_to_max(axes, 'y')
+        set_y_to_max(axes)
 
     if z:
-        set_lim_to_max(axes, 'z')
+        set_z_to_max(axes)
 
 def set_equal(ax):
     x_min, x_max = ax.get_xlim()

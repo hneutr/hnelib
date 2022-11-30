@@ -4,7 +4,7 @@
 # 1. fix DIMS to be (#rows, #cols) and match plt.subplots
 # 2. make "subplots" function
 # 3. move functions from:
-#   - leagalize.plot.utils:
+#   - leagalize.plot.util:
 #       - bar_plot
 #       - box_plot
 #       - stacked_hbar_plot
@@ -14,44 +14,12 @@
 #------------------------------------------------------------------------------#
 import numpy as np
 import pandas as pd
-import itertools
-from scipy.stats import pearsonr
 
 import hnelib.pd.util
 
-import hnelib.plt.dims as dims
-import hnelib.plt.font
-import hnelib.plt.ax as hnelib_ax
-
-
-def annotate_pearson(ax, xs, ys, xy_loc=(.1, .9), annotate_kwargs={}):
-    x_fraction, y_fraction = xy_loc
-    x_min, x_max = ax.get_xlim()
-    y_min, y_max = ax.get_ylim()
-
-    x = x_min + x_fraction * (x_max - x_min)
-    y = y_min + y_fraction * (y_max - y_min)
-
-    pearson, pearson_p = pearsonr(xs, ys)
-    ax.annotate(
-        f"\tpearson: {round(pearson, 2)}",
-        (x, y),
-        va='center',
-        ha='left',
-        annotation_clip=False,
-        **annotate_kwargs,
-    )
-
-
-def text_fraction_label(numerator, denominator, convert_hyphens=True):
-    text = r"$\frac{\mathrm{" + numerator + "}}{\mathrm{" + denominator + "}}$"
-
-    text = text.replace(' ', '\ ')
-
-    if convert_hyphens:
-        text = text.replace("-", u"\u2010")
-
-    return text
+from hnelib.plt.constants import *
+import hnelib.plt.color
+import hnelib.plt.axes as hnelib_axes
 
 
 #------------------------------------------------------------------------------#
@@ -62,7 +30,7 @@ def text_fraction_label(numerator, denominator, convert_hyphens=True):
 def plot_connected_scatter(ax, df, x_column, y_column, color, s=12, lw=.65):
     df = df.copy()
     df = df.sort_values(by=x_column)
-    faded_color = hnelib.color.set_alpha(color)
+    faded_color = hnelib.plt.color.set_alpha(color)
 
     ax.plot(
         df[x_column],
@@ -94,7 +62,7 @@ def plot_connected_scatter(ax, df, x_column, y_column, color, s=12, lw=.65):
 def plot_disconnected_scatter(ax, df, x_column, y_column, color, s=4, lw=1.5):
     df = df.copy()
     df = df.sort_values(by=x_column)
-    faded_color = hnelib.color.set_alpha(color, .75)
+    faded_color = hnelib.plt.color.set_alpha(color, .75)
 
     big_s = s * 2
     small_s = s - 3
@@ -170,7 +138,7 @@ def bar_plot(
         df['FaceColor'] = df['Color']
 
         if fade_facecolor:
-            df['FaceColor'] = df['FaceColor'].apply(hnelib.color.set_alpha)
+            df['FaceColor'] = df['FaceColor'].apply(hnelib.plt.color.set_alpha)
 
         draw_kwargs['edgecolor'] = df['Color']
         draw_kwargs['color'] = df['FaceColor']
@@ -380,7 +348,7 @@ def grouped_bar_plot(
 
         ax.axvline(
             x,
-            color=hnelib.color.C['dark_gray'],
+            color=colors['-'],
             lw=.5,
             zorder=0,
         )
@@ -536,7 +504,7 @@ def ultibar_plot(
         df['FaceColor'] = df['BarColor']
 
         if fade_bar_facecolor:
-            df['FaceColor'] = df['FaceColor'].apply(hnelib.color.set_alpha)
+            df['FaceColor'] = df['FaceColor'].apply(hnelib.plt.color.set_alpha)
 
         draw_kwargs['edgecolor'] = df['BarEdgeColor'] if 'BarEdgeColor' in cols else df['BarColor']
         draw_kwargs['color'] = df['FaceColor']
@@ -576,7 +544,7 @@ def ultibar_plot(
     if 'Label' in df.columns:
         df['LabelX'] = df.groupby('Group')['X'].transform('mean')
 
-        hnelib_ax.set_x_text(
+        hnelib_axes.set_x_text(
             ax,
             df,
             tick_col='LabelX',
@@ -598,7 +566,7 @@ def ultibar_plot(
 
         ax.axvline(
             x,
-            color=hnelib.color.C['dark_gray'],
+            color=colors['-'],
             lw=.5,
             zorder=0,
         )

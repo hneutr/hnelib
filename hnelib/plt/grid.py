@@ -15,8 +15,8 @@ def on_vals(
     ax,
     xs=[],
     ys=[],
-    color=hnelib.plt.color.C['-'],
-    alpha=hnelib.plt.color.ALPHA,
+    color=hnelib.plt.color.colors['-'],
+    alpha=hnelib.plt.color.alpha,
     zorder=GRID_ZORDER,
     linewidth=GRID_LINEWIDTH,
     **kwargs

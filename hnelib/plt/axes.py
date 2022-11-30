@@ -1,28 +1,36 @@
-import hnelib.utils
+import hnelib.util
 import hnelib.pd.util
-import hnelib.plt.font as font
+
+from hnelib.plt.constants import *
+
 
 def _ax_fn(ax, fn_suffix, axis='x', fn_prefix='get'):
     return getattr(ax, f"{fn_prefix}_{axis}{fn_suffix}", None)
 
+
 def get_fn(ax, fn_suffix, axis='x'):
     return _ax_fn(ax, fn_suffix=fn_suffix, axis=axis, fn_prefix='get')
 
+
 def set_fn(ax, fn_suffix, axis='x'):
     return _ax_fn(ax, fn_suffix=fn_suffix, axis=axis, fn_prefix='set')
+
 
 def hide(ax):
     ax.set_frame_on(False)
     ax.set_xticks([])
     ax.set_yticks([])
 
-def add_subplot_labels(
+
+def label_subplots(
     axes,
     x_pads,
     y_pad=1.15,
-    size=font.S['subplot-label'],
     labels=[],
     horizontal_alignments=[],
+    fontsize=font.size['subplot_label'],
+    fontweight=font.weight['subplot_label'],
+    fontname=font.name['subplot_label'],
 ):
     import string
 
@@ -38,13 +46,12 @@ def add_subplot_labels(
             y_pad,
             label.lower(),
             transform=ax.transAxes,
-            fontname='Arial',
+            fontname=fontname,
             fontsize=fontsize,
-            fontweight='bold',
+            fontweight=fontweight,
             va='top',
             ha=ha,
         )
-
 
 
 def set_axis_text(
@@ -71,6 +78,7 @@ def set_axis_text(
         for color, tick in zip(df['Color'], ticklabels):
             tick.set_color(color)
 
+
 def set_x_text(*args, **kwargs):
     set_axis_text(*args, which='x', **kwargs)
 
@@ -79,8 +87,8 @@ def set_y_text(*args, **kwargs):
     set_axis_text(*args, which='y', **kwargs)
 
 
-def set_label_size(axes, size=font.S['axis']):
-    for ax in hnelib.utils.as_list(axes):
+def set_label_size(axes, size=font.size['axis_label']):
+    for ax in hnelib.util.as_list(axes):
         for axis in ['x', 'y']:
             label = get_fn(ax, 'label', axis=axis)()
 
@@ -88,21 +96,18 @@ def set_label_size(axes, size=font.S['axis']):
                 set_fn(ax, 'label', axis=axis)(label, size=size)
 
 
-def set_ticklabel_size(axes, size=font.S['tick']):
-    for ax in hnelib.utils.as_list(axes):
-        ax.tick_params(axis='both', which='major', labelsize=size)
+def set_ticklabel_size(axes, axis='both', which='major', size=font.size['tick']):
+    for ax in hnelib.util.as_list(axes):
+        ax.tick_params(axis=axis, which=which, labelsize=size)
 
 
 def finalize(
     axes,
     label_x_pads=[],
     label_y_pad=1.15,
-    axis_size=font.S['axis'],
-    tick_size=font.S['tick'],
-    label_size=font.S['subplot-label'],
 ):
     if label_x_pads:
-        add_subplot_labels(axes, label_x_pads, y_pad=label_y_pad, size=label_size)
+        label_subplots(axes, label_x_pads, y_pad=label_y_pad)
 
-    set_label_size(axes, size=axis_size)
-    set_ticklabel_size(axes, size=tick_size)
+    set_label_size(axes)
+    set_ticklabel_size(axes)

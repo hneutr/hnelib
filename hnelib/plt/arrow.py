@@ -1,29 +1,40 @@
-import hnelib.plt.color
+import functools
 
-__color__ = hnelib.plt.color.C['-']
-__linewidth__ = .35
+from hnelib.plt.color import colors
 
-A = {
-    '->': {
-        'lw': __linewidth__,
-        'color': __color__,
-        'arrowstyle': '->, head_width=.15, head_length=.21',
-    },
-    '-': {
-        'lw': __linewidth__,
-        'color': __color__,
-        'arrowstyle': '-',
-        'shrinkA': 0,
-        'shrinkB': 0,
-    },
+DEFAULT_ARROW = {
+    'linewidth': .35,
+    'color': colors['-'],
+    'arrowstyle': '->, head_width=.15, head_length=.21',
 }
 
-A['-> (full -)'] = {
-    **A['->'],
+DEFAULT_LINE = {
+    **DEFAULT_ARROW,
+    'arrowstyle': '-',
     'shrinkA': 0,
-}
-
-A['-> (full >)'] = {
-    **A['->'],
     'shrinkB': 0,
 }
+
+
+@functools.lru_cache
+def __get_arrows__():
+    arrows = {
+        '->': DEFAULT_ARROW,
+        '-': DEFAULT_LINE,
+    }
+
+    for shrinkA, shrinkB in [(0, 0), (0, 1), (1, 0)]:
+        shrink_kwargs = {
+            'shrinkA': shrinkA,
+            'shrinkB': shrinkB,
+        }
+
+        label = f"a{' ' * shrinkA}->{' ' * shrinkB}b" 
+        arrows[label] = {
+            **DEFAULT_ARROW,
+            **{k: v for k, v in shrink_kwargs.items() if v == 0}
+        }
+
+    return arrows
+
+arrows = __get_arrows__()

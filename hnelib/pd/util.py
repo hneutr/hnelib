@@ -1,6 +1,6 @@
 import pandas as pd
 
-import hnelib.utils
+import hnelib.util
 
 
 FAKE_COL_PREFIX = 'fake_hnelib_col'
@@ -33,7 +33,7 @@ def get_groupby_cols(df, groupby_cols=None):
         groupby_cols = get_fake_col('groupby')
         df[groupby_cols] = True
 
-    groupby_cols = hnelib.utils.as_list(groupby_cols)
+    groupby_cols = hnelib.util.as_list(groupby_cols)
 
     return df, groupby_cols
 
