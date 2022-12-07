@@ -7,7 +7,8 @@ from hnelib.plt.color import colors
 DEFAULT_ARROW = {
     'linewidth': .45,
     'color': colors['-'],
-    'arrowstyle': '->, head_width=.15, head_length=.25, tail_width=.15',
+    'arrowstyle': '->, head_width=.15, head_length=.25',
+    'shrinkA': .1,
 }
 
 DEFAULT_LINE = {
