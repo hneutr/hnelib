@@ -12,6 +12,7 @@ SCATTER_ZORDER = 2
 
 def categorical(
     ax,
+    df,
     val_col,
     order_col=None,
     color_col=None,
