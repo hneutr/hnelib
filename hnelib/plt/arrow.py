@@ -1,11 +1,13 @@
 import functools
 
+from matplotlib.patches import ArrowStyle
+
 from hnelib.plt.color import colors
 
 DEFAULT_ARROW = {
     'linewidth': .45,
     'color': colors['-'],
-    'arrowstyle': '->, head_width=.15, head_length=.25',
+    'arrowstyle': '->, head_width=.15, head_length=.25, tail_width=.15',
 }
 
 DEFAULT_LINE = {
