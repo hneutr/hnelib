@@ -1,7 +1,7 @@
 import hnelib.plt.axes
 
 def set_one_to_max(axes, axis='x'):
-    get_fns = [hnelib.plt.axes.get_fn(ax, fn_suffix='lim', axis=axis)]
+    get_fns = [hnelib.plt.axes.get_fn(ax, fn_suffix='lim', axis=axis) for ax in axes]
 
     if all(get_fns):
         lims = list(itertools.chain.from_iterable([fn() for fn in get_fns]))
