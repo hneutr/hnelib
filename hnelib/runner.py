@@ -639,7 +639,7 @@ class Runner(object):
         """
         paths = set()
 
-        for item in self.items.items():
+        for item in self.items:
             for expansion in item.expansions:
                 for suffix in expansion.SUFFIXES:
                     paths.add(expansion.path.with_suffix(suffix))
