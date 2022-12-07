@@ -60,6 +60,6 @@ def annotate(
 
     ax.annotate(
         text,
-        (x_start, y_end),
+        (x_start, y_start),
         **kwargs,
     )
