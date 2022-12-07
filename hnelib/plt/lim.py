@@ -1,3 +1,5 @@
+import itertools
+
 import hnelib.plt.axes
 
 def set_one_to_max(axes, axis='x'):
