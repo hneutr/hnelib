@@ -73,6 +73,8 @@ def categorical(
         **kwargs,
     )
 
+    print(kwargs)
+
     if 'Error' in cols:
         errorbar_kwargs['zorder'] = errorbar_kwargs.get('zorder', zorder)
         errorbar_kwargs['ecolor'] = errorbar_kwargs.get('ecolor', kwargs['edgecolor'])
