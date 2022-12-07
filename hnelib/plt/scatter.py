@@ -25,7 +25,6 @@ def categorical(
     zorder=2,
     s=200,
     set_ticks=True,
-    errorbar_kwargs={},
     **kwargs,
 ):
     df = hnelib.pd.util.rename_df(df, {
@@ -74,8 +73,10 @@ def categorical(
     )
 
     if 'Error' in cols:
+        errorbar_kwargs = {}
+
         errorbar_kwargs['zorder'] = errorbar_kwargs.get('zorder', zorder)
-        errorbar_kwargs['ecolor'] = errorbar_kwargs.get('ecolor', kwargs['color'])
+        errorbar_kwargs['ecolor'] = errorbar_kwargs.get('ecolor', kwargs['edgecolor'])
 
         ax.errorbar(
             df['X'],
