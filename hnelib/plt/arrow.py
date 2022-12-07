@@ -3,7 +3,7 @@ import functools
 from hnelib.plt.color import colors
 
 DEFAULT_ARROW = {
-    'linewidth': .35,
+    'linewidth': .5,
     'color': colors['-'],
     'arrowstyle': '->, head_width=.15, head_length=.21',
 }
