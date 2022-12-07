@@ -11,13 +11,13 @@ def set_one_to_max(axes, axis='x'):
             hnelib.plt.axes.set_fn(ax, fn_suffix='lim', axis=axis)(_min, _max)
 
 def set_x_to_max(axes):
-    set_lim_to_max(axes, 'x')
+    set_one_to_max(axes, 'x')
 
 def set_y_to_max(axes):
-    set_lim_to_max(axes, 'y')
+    set_one_to_max(axes, 'y')
 
 def set_z_to_max(axes):
-    set_lim_to_max(axes, 'z')
+    set_one_to_max(axes, 'z')
 
 def set_to_max(axes, x=True, y=True, z=True):
     if x:
