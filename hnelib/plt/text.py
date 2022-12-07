@@ -1,5 +1,5 @@
 from hnelib.plt.arrow import arrows
-import hnelib.plt.font
+from hnelib.plt.font import size as fontsize
 
 
 def fraction(numerator, denominator, convert_hyphens=True):
@@ -25,7 +25,7 @@ def annotate(
     va='center',
     annotation_clip=False,
     arrowstyle=arrows['->'],
-    fontsize=hnelib.plt.font.size['annotation'],
+    fontsize=fontsize['annotation'],
 ):
     kwargs = {
         'ha': ha,
