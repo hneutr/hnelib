@@ -1,4 +1,4 @@
-import hnelib.plt.color
+from hnelib.plt.color import colors, alpha
 
 GRID_ZORDER = -1
 GRID_LINEWIDTH = .5
@@ -15,8 +15,8 @@ def on_vals(
     ax,
     xs=[],
     ys=[],
-    color=hnelib.plt.color.colors['-'],
-    alpha=hnelib.plt.color.alpha,
+    color=colors['-'],
+    alpha=alpha,
     zorder=GRID_ZORDER,
     linewidth=GRID_LINEWIDTH,
     **kwargs
