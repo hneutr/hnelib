@@ -18,8 +18,12 @@ import pandas as pd
 import hnelib.pd.util
 
 from hnelib.plt.constants import *
-import hnelib.plt.color
-import hnelib.plt.axes as hnelib_axes
+import hnelib.plt.color as color
+import hnelib.plt.axes as axes
+import hnelib.plt.lim as lim
+import hnelib.plt.grid as grid
+import hnelib.plt.legend as legend
+import hnelib.plt.text as text
 
 
 #------------------------------------------------------------------------------#
@@ -30,7 +34,7 @@ import hnelib.plt.axes as hnelib_axes
 def plot_connected_scatter(ax, df, x_column, y_column, color, s=12, lw=.65):
     df = df.copy()
     df = df.sort_values(by=x_column)
-    faded_color = hnelib.plt.color.set_alpha(color)
+    faded_color = color.set_alpha(color)
 
     ax.plot(
         df[x_column],
@@ -62,7 +66,7 @@ def plot_connected_scatter(ax, df, x_column, y_column, color, s=12, lw=.65):
 def plot_disconnected_scatter(ax, df, x_column, y_column, color, s=4, lw=1.5):
     df = df.copy()
     df = df.sort_values(by=x_column)
-    faded_color = hnelib.plt.color.set_alpha(color, .75)
+    faded_color = color.set_alpha(color, .75)
 
     big_s = s * 2
     small_s = s - 3
@@ -138,7 +142,7 @@ def bar_plot(
         df['FaceColor'] = df['Color']
 
         if fade_facecolor:
-            df['FaceColor'] = df['FaceColor'].apply(hnelib.plt.color.set_alpha)
+            df['FaceColor'] = df['FaceColor'].apply(color.set_alpha)
 
         draw_kwargs['edgecolor'] = df['Color']
         draw_kwargs['color'] = df['FaceColor']
@@ -504,7 +508,7 @@ def ultibar_plot(
         df['FaceColor'] = df['BarColor']
 
         if fade_bar_facecolor:
-            df['FaceColor'] = df['FaceColor'].apply(hnelib.plt.color.set_alpha)
+            df['FaceColor'] = df['FaceColor'].apply(color.set_alpha)
 
         draw_kwargs['edgecolor'] = df['BarEdgeColor'] if 'BarEdgeColor' in cols else df['BarColor']
         draw_kwargs['color'] = df['FaceColor']
@@ -544,7 +548,7 @@ def ultibar_plot(
     if 'Label' in df.columns:
         df['LabelX'] = df.groupby('Group')['X'].transform('mean')
 
-        hnelib_axes.set_x_text(
+        axes.set_x_text(
             ax,
             df,
             tick_col='LabelX',
