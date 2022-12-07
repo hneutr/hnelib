@@ -1,10 +1,99 @@
 import hnelib.pd.util
 
+import hnelib.plt.color
+import hnelib.plt.axes
+
 
 LINEWIDTH = .65
 S = 12
 LINE_ZORDER = 1
 SCATTER_ZORDER = 2
+
+
+def categorical(
+    ax,
+    val_col,
+    order_col=None,
+    color_col=None,
+    edgecolor_col=None,
+    facecolor_col=None,
+    error_col=None,
+    label_col=None,
+    label_color_col=None,
+    fade_facecolor=True,
+    zorder=2,
+    s=200,
+    set_ticks=True,
+    errorbar_kwargs={},
+    **kwargs,
+):
+    df = hnelib.pd.util.rename_df(df, {
+        'Val': val_col,
+        'Order': order_col,
+        'Color': color_col,
+        'EdgeColor': edgecolor_col,
+        'FaceColor': facecolor_col,
+        'Label': label_col,
+        'LabelColor': label_color_col,
+        'Error': error_col,
+    })
+
+    cols = df.columns
+
+    if 'Order' not in cols:
+        df = df.sort_values(by=['Val'])
+        df['Order'] = [i for i in range(len(df))]
+
+    orders = sorted(df['Order'].unique())
+    df['X'] = df['Order'].apply(orders.index)
+
+    if 'Color' not in cols:
+        if 'EdgeColor' in cols:
+            df['Color'] = df['EdgeColor']
+        elif 'FaceColor' in cols:
+            df['Color'] = df['FaceColor']
+
+    if 'Color' in cols:
+        if 'FaceColor' not in cols:
+            df['FaceColor'] = df['Color']
+
+        if fade_facecolor:
+            df['FaceColor'] = df['FaceColor'].apply(hnelib.plt.color.set_alpha)
+
+        kwargs['edgecolor'] = df['EdgeColor'] if 'EdgeColor' in cols else df['Color']
+        kwargs['color'] = df['FaceColor']
+
+    kwargs['zorder'] = kwargs.get('zorder', zorder)
+    kwargs['s'] = kwargs.get('s', s)
+
+    ax.scatter(
+        df['X'],
+        df['Val'],
+        **kwargs,
+    )
+
+    if 'Error' in cols:
+        errorbar_kwargs['zorder'] = errorbar_kwargs.get('zorder', zorder)
+        errorbar_kwargs['ecolor'] = errorbar_kwargs.get('ecolor', kwargs['edgecolor'])
+
+        ax.errorbar(
+            df['X'],
+            df['Val'],
+            fmt='none',
+            yerr=df['Error'],
+            **errorbar_kwargs,
+        )
+
+    ax.set_xlim(-.5, max(orders) + .5)
+
+    if set_ticks:
+        hnelib.plt.axes.set_x_text(
+            ax,
+            df,
+            tick_col='X',
+            label_col='Label',
+            color_col='LabelColor',
+        )
 
 
 def connected(
