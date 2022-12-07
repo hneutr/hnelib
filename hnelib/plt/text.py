@@ -24,7 +24,7 @@ def annotate(
     ha='center',
     va='center',
     annotation_clip=False,
-    arrowstyle=arrows['->'],
+    arrowprops=arrows['->'],
     fontsize=fontsize['annotation'],
 ):
     kwargs = {
@@ -56,7 +56,7 @@ def annotate(
 
     if x_start != x_end or y_start != y_end:
         kwargs['xytext'] = (x_end, y_end)
-        kwargs['arrowstyle'] = arrowstyle
+        kwargs['arrowprops'] = arrowprops
 
     ax.annotate(
         text,
