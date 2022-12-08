@@ -5,6 +5,7 @@ from hnelib.plt.constants import *
 
 
 def _ax_fn(ax, fn_suffix, axis='x', fn_prefix='get'):
+    print(f"{fn_prefix}_{axis}{fn_suffix}")
     return getattr(ax, f"{fn_prefix}_{axis}{fn_suffix}", None)
 
 
