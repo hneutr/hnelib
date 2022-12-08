@@ -47,6 +47,7 @@ def as_list(thing=None):
     - thing = 7 → [7]
     """
     import pandas as pd
+    import numpy as np
 
     if thing is None:
         thing = []
