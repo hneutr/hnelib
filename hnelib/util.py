@@ -52,6 +52,8 @@ def as_list(thing=None):
         thing = []
     elif isinstance(thing, pd.Series):
         thing = list(thing)
+    elif isinstance(thing, np.ndarray):
+        thing = thing.flatten()
     elif not isinstance(thing, list):
         thing = [thing]
 
