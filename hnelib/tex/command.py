@@ -21,10 +21,10 @@ def evaluate_collections(collections):
         results[name] = collection()
         end = time.time()
 
-        n_collection_commands = len(results[key])
+        n_collection_commands = len(results[name])
         n_commands += n_collection_commands
         
-        print(f'\t{key}: {n_collection_commands} commands ({round(end - start)}s)')
+        print(f'\t{name}: {n_collection_commands} commands ({round(end - start)}s)')
 
     print(f"{n_commands} stats. yay!")
 
