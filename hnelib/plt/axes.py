@@ -5,7 +5,6 @@ from hnelib.plt.constants import *
 
 
 def _ax_fn(ax, fn_suffix, axis='x', fn_prefix='get'):
-    print(f"{fn_prefix}_{axis}{fn_suffix}")
     return getattr(ax, f"{fn_prefix}_{axis}{fn_suffix}", None)
 
 
@@ -91,6 +90,7 @@ def set_y_text(*args, **kwargs):
 def set_label_size(axes, size=font.size['axis_label']):
     for ax in hnelib.util.as_list(axes):
         for axis in ['x', 'y']:
+            print(ax)
             label = get_fn(ax, 'label', axis=axis)()
 
             if label:
