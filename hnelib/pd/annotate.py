@@ -191,3 +191,9 @@ def multiple_hypothesis_corrected_pvalue(
         annotations.append(rows)
 
     return _add_annotations(df, annotations, join_cols=groupby_cols + hypothesis_cols)
+
+
+def round_to_nearest(df, col, to_col=None, nearest=1):
+    to_col = to_col or col
+    df[to_col] = df[col].apply(lambda v: round(v / nearest) * nearest)
+    return df
