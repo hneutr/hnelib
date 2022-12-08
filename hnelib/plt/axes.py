@@ -90,9 +90,6 @@ def set_y_text(*args, **kwargs):
 def set_label_size(axes, size=font.size['axis_label']):
     for ax in hnelib.util.as_list(axes):
         for axis in ['x', 'y']:
-            print(ax)
-            print(getattr(ax, 'get_xlabel'))
-            print(get_fn(ax, 'label', axis=axis))
             label = get_fn(ax, 'label', axis=axis)()
 
             if label:
