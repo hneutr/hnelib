@@ -8,3 +8,4 @@ import hnelib.util as util
 import hnelib.pd as pd
 import hnelib.stat as stat
 import hnelib.plt as plt
+import hnelib.tex as tex
