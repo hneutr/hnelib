@@ -1,1 +1,1 @@
-import hnelib.tex.command as command
+import hnelib.tex.command

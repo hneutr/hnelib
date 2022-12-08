@@ -2,8 +2,8 @@ import scipy.stats
 import statsmodels.stats.proportion
 
 
-import hnelib.stat.test as test
-import hnelib.stat.model as model
+import hnelib.stat.test
+import hnelib.stat.model
 
 
 def correlation(xs, ys):

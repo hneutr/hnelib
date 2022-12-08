@@ -18,12 +18,12 @@ import pandas as pd
 import hnelib.pd.util
 
 from hnelib.plt.constants import *
-import hnelib.plt.color as color
-import hnelib.plt.axes as axes
-import hnelib.plt.lim as lim
-import hnelib.plt.grid as grid
-import hnelib.plt.legend as legend
-import hnelib.plt.text as text
+import hnelib.plt.color
+import hnelib.plt.axes
+import hnelib.plt.lim
+import hnelib.plt.grid
+import hnelib.plt.legend
+import hnelib.plt.text
 
 
 #------------------------------------------------------------------------------#
@@ -34,7 +34,7 @@ import hnelib.plt.text as text
 def plot_connected_scatter(ax, df, x_column, y_column, color, s=12, lw=.65):
     df = df.copy()
     df = df.sort_values(by=x_column)
-    faded_color = color.set_alpha(color)
+    faded_color = hnelib.plt.color.set_alpha(color)
 
     ax.plot(
         df[x_column],
@@ -334,7 +334,7 @@ def grouped_bar_plot(
     if 'GroupLabel' in df.columns:
         df['GroupTick'] = df.groupby('Group')['X'].transform('mean')
 
-        set_x_text(
+        hnelib.plt.axes.set_x_text(
             ax,
             df,
             tick_col='GroupTick',
@@ -548,7 +548,7 @@ def ultibar_plot(
     if 'Label' in df.columns:
         df['LabelX'] = df.groupby('Group')['X'].transform('mean')
 
-        axes.set_x_text(
+        hnelib.plt.axes.set_x_text(
             ax,
             df,
             tick_col='LabelX',

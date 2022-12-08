@@ -1,7 +1,7 @@
 import pandas as pd
 
-import hnelib.pd.util as util
-import hnelib.pd.annotate as annotate
+import hnelib.pd.util
+import hnelib.pd.annotate
 
 
 def aggregate(
