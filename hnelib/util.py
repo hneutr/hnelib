@@ -189,4 +189,9 @@ def number_to_words(number, include_digit_count_words=True):
         if last_part in list(DIGIT_COUNT_TO_WORD.values()):
             parts.append(last_part)
 
+    if decimal_str:
+        parts.append("point")
+        parts += [NUMBER_TO_WORD[d] for d in decimal_str]
+
+
     return " ".join(parts)
