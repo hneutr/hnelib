@@ -212,30 +212,32 @@ class TestItem:
 
         expect(actual).to(equal(expected))
 
-    def test_raises_exception_without_default(self):
+    def test_defaults_to_first_arg(self):
         runner = Runner(
             collection={
                 'directory_expansions': {'x': [1, 2, 3]},
-                'a': lambda x: x,
-            }
-        )
-
-        with pytest.raises(MultipleExpansionsFound):
-            runner.get_item('a').get_expansion().path
-
-    def test_raises_exception_without_default(self):
-        runner = Runner(
-            collection={
-                'directory_expansions': {'x': [1, 2, 3]},
-                'arg_defaults': {
-                    'x': 1,
-                },
                 'a': lambda x: x,
             }
         )
 
         actual = runner.get_item('a').get_expansion().path
         expected = Item.CONFIG_DEFAULTS['results_dir'].joinpath('1', 'a.txt')
+
+        expect(actual).to(equal(expected))
+
+    def test_raises_exception_with_default(self):
+        runner = Runner(
+            collection={
+                'directory_expansions': {'x': [1, 2, 3]},
+                'arg_defaults': {
+                    'x': 2,
+                },
+                'a': lambda x: x,
+            }
+        )
+
+        actual = runner.get_item('a').get_expansion().path
+        expected = Item.CONFIG_DEFAULTS['results_dir'].joinpath('2', 'a.txt')
 
         expect(actual).to(equal(expected))
 

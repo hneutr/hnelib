@@ -220,6 +220,7 @@ class Item(object):
 
         self.sanitize_do_arguments()
         self.filter_expansions()
+        self.set_arg_defaults()
 
     def __eq__(self, other):
         conditions = []
@@ -357,6 +358,11 @@ class Item(object):
             'prefixes': self.prefix_expansions,
             'suffixes': self.suffix_expansions,
         }
+
+    def set_arg_defaults(self):
+        for expansions in self.expansions_by_type.values():
+            for key, values in expansions.items():
+                self.arg_defaults[key] = self.arg_defaults.get(key, values[0])
 
     def get_expansions(self, **kwargs):
         expansions = []
@@ -656,6 +662,7 @@ class Runner(object):
             parent = path.parent
             if not len(list(parent.glob('*'))):
                 parent.rmdir()
+
 
 class PlotRunner(Runner):
     DEFAULT_EXPANSION_TYPE = PlotExpansion
