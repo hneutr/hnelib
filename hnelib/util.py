@@ -156,6 +156,11 @@ def number_to_words(number, include_digit_count_words=True):
         number_str, decimal_str = number_str.split('.')
 
     parts = []
+
+    if number_str.startswith('-'):
+        number_str = number_str[1:]
+        parts.append('negative')
+
     while number_str:
         current_str = number_str[0]
         next_str = number_str[1:]
