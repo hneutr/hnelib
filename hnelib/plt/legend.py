@@ -101,7 +101,7 @@ class Line(Handle):
 
 
 class Marker(Handle):
-    GET_ARTIST = lambda kwargs: matplotlib.lines.Line2D([], [], color='w', **kwargs)
+    GET_ARTIST = lambda kwargs: matplotlib.lines.Line2D([], [], color='none', **kwargs)
 
     DEFAULTS = {
         **Handle.DEFAULTS,
