@@ -67,8 +67,6 @@ class Handle(object):
         #         artist_key = self.ARTIST_KEYS.get(k, k)
         #         self.kwargs[artist_key] = v
 
-        print(self.kwargs)
-        import sys; sys.exit()
 
     def apply_artist_keys(self, kwargs):
         new_kwargs = {}
