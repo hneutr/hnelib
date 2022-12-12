@@ -64,6 +64,8 @@ class Handle(object):
                 artist_key = self.ARTIST_KEYS.get(k, k)
                 self.kwargs[artist_key] = v
 
+        print(self.kwargs)
+
     def set_facecolor(self):
         facecolor = getattr(self, 'facecolor', getattr(self, 'color'))
 
