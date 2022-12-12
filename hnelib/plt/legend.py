@@ -112,7 +112,7 @@ class Marker(Handle):
     ARTIST_KEYS = {
         'color': 'markeredgecolor',
         'facecolor': 'markerfacecolor',
-        'linewidth': 'markerlinewidth',
+        'linewidth': 'markeredgewidth',
         'size': 'markersize',
     }
 
