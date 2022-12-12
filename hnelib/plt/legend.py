@@ -101,8 +101,6 @@ class Line(Handle):
 
 
 class Marker(Handle):
-    GET_ARTIST = lambda kwargs: matplotlib.lines.Line2D([], [], color='none', **kwargs)
-
     DEFAULTS = {
         **Handle.DEFAULTS,
         'marker': 'o',
@@ -118,7 +116,7 @@ class Marker(Handle):
 
     @cached_property
     def artist(self):
-        return matplotlib.lines.Line2D([], [], **self.kwargs)
+        return matplotlib.lines.Line2D([], [], color='none', **self.kwargs)
 
 
 class Box(Handle):
