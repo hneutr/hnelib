@@ -54,7 +54,7 @@ class Handle(object):
             setattr(self, k, v)
 
         self.kwargs = {
-            'label': text
+            'label': text,
             **kwargs,
         }
 
