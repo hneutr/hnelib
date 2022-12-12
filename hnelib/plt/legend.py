@@ -58,6 +58,7 @@ class Handle(object):
         }
 
         self.set_facecolor()
+        kwargs['facecolor'] = kwargs.get('facecolor', self.facecolor)
 
         for k, v in kwargs.items():
             if v != None:
