@@ -55,18 +55,29 @@ class Handle(object):
 
         self.kwargs = {
             'label': text
+            **kwargs,
         }
 
         self.set_facecolor()
-        kwargs['facecolor'] = kwargs.get('facecolor', self.facecolor)
+        self.kwargs = self.apply_artist_keys(self.kwargs)
+        # kwargs['facecolor'] = kwargs.get('facecolor', self.facecolor)
 
-        for k, v in kwargs.items():
-            if v != None:
-                artist_key = self.ARTIST_KEYS.get(k, k)
-                self.kwargs[artist_key] = v
+        # for k, v in kwargs.items():
+        #     if v != None:
+        #         artist_key = self.ARTIST_KEYS.get(k, k)
+        #         self.kwargs[artist_key] = v
 
         print(self.kwargs)
         import sys; sys.exit()
+
+    def apply_artist_keys(self, kwargs):
+        new_kwargs = {}
+        for key, val in kwargs.items():
+            key = self.ARTIST_KEYS.get(key, key)
+            if val != None:
+                new_kwargs[key] = val
+
+        return new_kwargs
 
     def set_facecolor(self):
         facecolor = getattr(self, 'facecolor', getattr(self, 'color'))
