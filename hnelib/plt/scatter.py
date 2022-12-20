@@ -19,6 +19,7 @@ def categorical(
     edgecolor_col=None,
     facecolor_col=None,
     error_col=None,
+    errorcolor_col=None,
     label_col=None,
     label_color_col=None,
     fade_facecolor=True,
@@ -33,6 +34,7 @@ def categorical(
         'Color': color_col,
         'EdgeColor': edgecolor_col,
         'FaceColor': facecolor_col,
+        'ErrorColor': errorcolor_col,
         'Label': label_col,
         'LabelColor': label_color_col,
         'Error': error_col,
@@ -76,7 +78,7 @@ def categorical(
         errorbar_kwargs = {}
 
         errorbar_kwargs['zorder'] = errorbar_kwargs.get('zorder', zorder)
-        errorbar_kwargs['ecolor'] = errorbar_kwargs.get('ecolor', kwargs['edgecolor'])
+        errorbar_kwargs['ecolor'] = df['ErrorColor'] if 'ErrorColor' in cols else kwargs['edgecolor']
 
         ax.errorbar(
             df['X'],
