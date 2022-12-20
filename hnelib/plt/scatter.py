@@ -22,6 +22,7 @@ def categorical(
     errorcolor_col=None,
     label_col=None,
     label_color_col=None,
+    size_col=None,
     fade_facecolor=True,
     zorder=2,
     s=200,
@@ -38,6 +39,7 @@ def categorical(
         'Label': label_col,
         'LabelColor': label_color_col,
         'Error': error_col,
+        'Size': size_col,
     })
 
     cols = df.columns
@@ -66,7 +68,7 @@ def categorical(
         kwargs['color'] = df['FaceColor']
 
     kwargs['zorder'] = kwargs.get('zorder', zorder)
-    kwargs['s'] = kwargs.get('s', s)
+    kwargs['s'] = df['Size'] if 'Size' in cols else s
 
     ax.scatter(
         df['X'],
