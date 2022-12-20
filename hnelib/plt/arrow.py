@@ -8,8 +8,6 @@ DEFAULT_ARROW = {
     'linewidth': .45,
     'color': colors['-'],
     'arrowstyle': '->, head_width=.15, head_length=.25',
-    'shrinkA': .1,
-    'shrinkB': .1,
 }
 
 DEFAULT_LINE = {
