@@ -61,19 +61,10 @@ def annotate(
         **kwargs,
     )
 
-    # annotation = ax.annotate(
-    #     text,
-    #     (x_start, y_start),
-    #     **kwargs,
-    # )
-
     if background_kwargs:
         annotation.set_bbox(background_kwargs)
 
     if x_start != x_end or y_start != y_end:
-        # kwargs['xytext'] = (x_end, y_end)
-        # kwargs['arrowprops'] = arrowprops
-
         ax.annotate(
             "",
             (x_start, y_start),
