@@ -34,19 +34,19 @@ def annotate(
         'annotation_clip': annotation_clip,
     }
 
-    if ha == 'center':
-        x_mult = 0
-    elif ha == 'left':
+    if ha == 'left':
         x_mult = 1
     elif ha == 'right':
         x_mult = -1
+    else:
+        x_mult = 0
         
-    if va == 'center':
-        y_mult = 0
-    elif va == 'bottom':
+    if va == 'bottom':
         y_mult = 1
     elif va == 'top':
         y_mult = -1
+    else:
+        y_mult = 0
 
     x_start = x + (x_mult * x_pad)
     y_start = y + (y_mult * y_pad)
