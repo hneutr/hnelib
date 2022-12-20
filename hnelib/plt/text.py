@@ -28,8 +28,8 @@ def annotate(
     fontsize=fontsize['annotation'],
 ):
     kwargs = {
-        'ha': ha,
-        'va': va,
+        'ha': ha or 'center',
+        'va': va or 'center',
         'fontsize': fontsize,
         'annotation_clip': annotation_clip,
     }
