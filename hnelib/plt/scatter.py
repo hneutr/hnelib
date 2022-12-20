@@ -53,7 +53,7 @@ def categorical(
         elif 'FaceColor' in cols:
             df['Color'] = df['FaceColor']
 
-    if 'Color' in cols:
+    if {'Color', 'EdgeColor', 'FaceColor'} in set(cols):
         if 'FaceColor' not in cols:
             df['FaceColor'] = df['Color']
 
