@@ -55,15 +55,29 @@ def annotate(
     x_end = x_start + (x_mult * x_arrow_len) 
     y_end = y_start + (y_mult * y_arrow_len) 
 
-    if x_start != x_end or y_start != y_end:
-        kwargs['xytext'] = (x_end, y_end)
-        kwargs['arrowprops'] = arrowprops
-
     annotation = ax.annotate(
         text,
-        (x_start, y_start),
+        (x_end, y_end),
         **kwargs,
     )
 
+    # annotation = ax.annotate(
+    #     text,
+    #     (x_start, y_start),
+    #     **kwargs,
+    # )
+
     if background_kwargs:
         annotation.set_bbox(background_kwargs)
+
+    if x_start != x_end or y_start != y_end:
+        # kwargs['xytext'] = (x_end, y_end)
+        # kwargs['arrowprops'] = arrowprops
+
+        ax.annotate(
+            "",
+            (x_start, y_start),
+            xytext=(x_end, y_end),
+            arrowprops=arrowprops,
+            **kwargs,
+        )
