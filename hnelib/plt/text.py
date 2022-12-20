@@ -66,4 +66,4 @@ def annotate(
     )
 
     if background_kwargs:
-        annotation.set_bbox(**background_kwargs)
+        annotation.set_bbox(background_kwargs)
