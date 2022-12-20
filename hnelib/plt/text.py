@@ -26,6 +26,7 @@ def annotate(
     annotation_clip=False,
     arrowprops=arrows['->'],
     fontsize=fontsize['annotation'],
+    background_kwargs={},
 ):
     kwargs = {
         'ha': ha or 'center',
@@ -58,8 +59,11 @@ def annotate(
         kwargs['xytext'] = (x_end, y_end)
         kwargs['arrowprops'] = arrowprops
 
-    ax.annotate(
+    annotation = ax.annotate(
         text,
         (x_start, y_start),
         **kwargs,
     )
+
+    if background_kwargs:
+        annotation.set_bbox(**background_kwargs)
