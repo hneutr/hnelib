@@ -543,6 +543,7 @@ def ultibar_plot(
                 ha='center',
                 va='center',
                 zorder=3,
+                fontsize=font.size['annotation'],
             )
 
     if 'Label' in df.columns:
