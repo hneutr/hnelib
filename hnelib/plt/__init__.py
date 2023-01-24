@@ -18,7 +18,7 @@ import pandas as pd
 import hnelib.pd.util
 
 from hnelib.plt.constants import *
-import hnelib.plt.color as color
+import hnelib.plt.color
 import hnelib.plt.axes
 import hnelib.plt.lim
 import hnelib.plt.grid
