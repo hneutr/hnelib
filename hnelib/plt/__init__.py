@@ -525,12 +525,12 @@ def ultibar_plot(
         **draw_kwargs,
     )
 
-    if 'Annotation' in cols:
+    if 'BarAnnotation' in cols:
         annotations = df.copy()
 
-        if 'Annotate' in cols:
+        if 'AnnotateBar' in cols:
             annotations = annotations[
-                annotations['Annotate']
+                annotations['AnnotateBar']
             ]
 
         annotations['Y'] /= 2
@@ -538,7 +538,7 @@ def ultibar_plot(
 
         for i, row in annotations.iterrows():
             ax.annotate(
-                row['Annotation'],
+                row['BarAnnotation'],
                 (row['X'], row['Y']),
                 ha='center',
                 va='center',
