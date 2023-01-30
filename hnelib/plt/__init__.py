@@ -483,13 +483,13 @@ def ultibar_plot(
     df['X'] = df['GroupOrder'] * group_size + group_pad + df['StackOrder']
 
     bottoms = []
-    for (group, stack), bars in df.groupby(['Group', 'Stack']):
+    for (group_order, stack_order), bars in df.groupby(['GroupOrder', 'StackOrder']):
         bottom = 0
         for i, row in bars.sort_values(by='BarOrder').iterrows():
             bottoms.append({
-                'Group': group,
-                'Stack': stack,
-                'Bar': row['Bar'],
+                'GroupOrder': group_order,
+                'StackOrder': stack_order,
+                'BarOrder': row['BarOrder'],
                 'BarBottom': bottom,
             })
 
@@ -498,9 +498,9 @@ def ultibar_plot(
     df = df.merge(
         pd.DataFrame(bottoms),
         on=[
-            'Bar',
-            'Stack',
-            'Group',
+            'BarOrder',
+            'StackOrder',
+            'GroupOrder',
         ]
     )
 
