@@ -479,7 +479,7 @@ def ultibar_plot(
         groups = sorted(df['Group'].unique())
         df['GroupOrder'] = df['Group'].apply(groups.index)
 
-    group_size = group_pad + df['Stack'].nunique()
+    group_size = group_pad + df['StackOrder'].nunique()
     df['X'] = df['GroupOrder'] * group_size + group_pad + df['StackOrder']
 
     bottoms = []
