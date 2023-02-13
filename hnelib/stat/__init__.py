@@ -27,10 +27,7 @@ def proportions_confidence_interval(events, observations, alpha=.05, method='nor
 
     return lower_bound, upper_bound
 
-def lowess(xs, ys, frac=.2, as_df=True):
-    lowess_xs, lowess_ys = zip(*sm.nonparametric.lowess(ys, xs, frac=frac))
+def lowess(df, x_col, y_col, frac=.2):
+    lowess_xs, lowess_ys = zip(*sm.nonparametric.lowess(df[y_col], df[x_col], frac=frac))
 
-    if as_df:
-        return pd.DataFrame({'X': lowess_xs, 'Y': lowess_ys})
-    else:
-        return lowess_xs, lowess_ys
+    return pd.DataFrame({x_col: lowess_xs, y_col: lowess_ys})
