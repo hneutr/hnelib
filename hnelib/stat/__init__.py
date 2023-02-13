@@ -1,5 +1,7 @@
+import pandas as pd
 import scipy.stats
 import statsmodels.stats.proportion
+import statsmodels.api as sm
 
 
 import hnelib.stat.test
@@ -24,3 +26,7 @@ def proportions_confidence_interval(events, observations, alpha=.05, method='nor
         lower_bound *= 100
 
     return lower_bound, upper_bound
+
+def lowess(xs, ys, frac=.2):
+    lowess_xs, lowess_ys = zip(*sm.nonparametric.lowess(ys, xs, frac=frac))
+    return lowess_xs, lowess_ys

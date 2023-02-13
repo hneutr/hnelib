@@ -16,6 +16,20 @@ import pandas as pd
 #     - shallowly: just the item called
 #     - deeply: rerun everything it calls
 # - have boolean args convert to "{param}"/"not-{param}" in paths
+# - support conditional expansions:
+#   - make a ConditionalExpansion object:
+#         'some_arg_with_conditions': ConditionalType([list, of, values, to, expand], {
+#             'arg_with_condition1': required_arg_value,
+#             'arg_with_condition2': [list, of, valid, arg, values],
+#         }),
+#   - requires modifying:
+#       - Item.filter_expansions()
+#           - convert all expansions into standard format (no conditions)
+#           - move constraints into "constraints_by_key"
+#       - Item.get_expansions()
+#       - Item.expansions
+#           - filter expansions by "constraints_by_key"
+# - when printing `running X`, print the path of the expansion, not just the unexpanded key
 
 class AmbiguousCollectionQuery(Exception):
     pass
@@ -593,6 +607,7 @@ class Runner(object):
         for item in items:
             print(f"running: {item.location}")
             for expansion in item.get_expansions(**kwargs):
+                print(f"\t{expansion.path}")
                 expansion.run(**kwargs)
 
     def run(self, query, **kwargs):

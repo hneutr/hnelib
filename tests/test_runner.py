@@ -240,4 +240,3 @@ class TestItem:
         expected = Item.CONFIG_DEFAULTS['results_dir'].joinpath('2', 'a.txt')
 
         expect(actual).to(equal(expected))
-
