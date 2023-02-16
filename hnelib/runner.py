@@ -29,7 +29,6 @@ import pandas as pd
 #       - Item.get_expansions()
 #       - Item.expansions
 #           - filter expansions by "constraints_by_key"
-# - when printing `running X`, print the path of the expansion, not just the unexpanded key
 
 class AmbiguousCollectionQuery(Exception):
     pass
