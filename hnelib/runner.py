@@ -644,6 +644,18 @@ class Runner(object):
 
         return expansion.result
 
+    def get_path(self, query, run_expansions=False, **kwargs):
+        expansions = self.get_item(query).get_expansions(**kwargs)
+
+        if not run_expansions:
+            expansions = expansions[:1]
+
+        paths = [expansion.path for expansion in expansions]
+
+        if len(paths) == 1:
+            return paths[0]
+
+        return paths
 
     ################################################################################
     #
