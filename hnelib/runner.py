@@ -629,6 +629,8 @@ class Runner(object):
         save_kwargs={},
         **kwargs,
     ):
+        expansions = item.get_expansions(run_expansions=run_expansions, **kwargs)
+
         for expansion in item.get_expansions(**kwargs):
             expansion.run(save_kwargs=save_kwargs, **kwargs)
             result = expansion.result
@@ -643,7 +645,9 @@ class Runner(object):
         save_kwargs={},
         **kwargs,
     ):
-        for expansion in self.get_item(query).get_expansions(**kwargs):
+        expansions = self.get_item(query).get_expansions(run_expansions=run_expansions, **kwargs)
+
+        for expansion in expansions:
             if rerun:
                 expansion.path.unlink()
 
@@ -656,7 +660,9 @@ class Runner(object):
         return result
 
     def get_path(self, query, run_expansions=False, **kwargs):
-        paths = [e.path for e in self.get_item(query).get_expansions(**kwargs)]
+        expansions = self.get_item(query).get_expansions(run_expansions=run_expansions, **kwargs)
+
+        paths = [e.path for e in expansions]
 
         if len(paths) == 1:
             return paths[0]
@@ -664,7 +670,9 @@ class Runner(object):
         return paths
 
     def remove(self, query, run_expansions=False, **kwargs):
-        for path in [e.path for e in self.get_item(query).get_expansions(**kwargs)]:
+        expansions = self.get_item(query).get_expansions(run_expansions=run_expansions, **kwargs)
+
+        for path in [e.path for e in expansions]:
             if path.exists():
                 path.unlink()
 
