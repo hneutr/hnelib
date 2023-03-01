@@ -110,6 +110,13 @@ class Expansion(object):
     def path(self):
         return self.directory.joinpath(self.name).with_suffix(self.item.suffix)
 
+    @property
+    def short_path(self):
+        path = str(self.path)
+        path = path.replace(str(self.item.results_dir), '')
+        path = path.rstrip(self.item.suffix, '')
+        return path
+
     def run(self, save_kwargs={}, **kwargs):
         result = self.do(**{
             **self.kwargs,
@@ -377,7 +384,7 @@ class Item(object):
             for key, values in expansions.items():
                 self.arg_defaults[key] = self.arg_defaults.get(key, values[0])
 
-    def get_expansions(self, **kwargs):
+    def get_expansions(self, run_expansions=False, **kwargs):
         expansions = []
         for expansion in self.expansions:
             if any([kwargs[k] != v for k, v in expansion.kwargs.items() if k in kwargs]):
@@ -387,6 +394,9 @@ class Item(object):
 
         if not expansions:
             raise ExpansionNotFound
+
+        if not run_expansions:
+            expansions = expansions[:1]
 
         return expansions
 
@@ -606,7 +616,7 @@ class Runner(object):
         for item in items:
             print(f"running: {item.location}")
             for expansion in item.get_expansions(**kwargs):
-                print(f"\t{expansion.path}")
+                print(f"\t{expansion.short_path}")
                 expansion.run(**kwargs)
 
     def run(self, query, **kwargs):
@@ -619,38 +629,34 @@ class Runner(object):
         save_kwargs={},
         **kwargs,
     ):
-        expansions = item.get_expansions(**kwargs)
-
-        if not run_expansions:
-            expansions = expansions[:1]
-
-        for expansion in expansions:
+        for expansion in item.get_expansions(**kwargs):
             expansion.run(save_kwargs=save_kwargs, **kwargs)
             result = expansion.result
 
         return result
 
-    def get(self, query, rerun=False, save_kwargs={}, **kwargs):
-        expansion = self.get_item(query).get_expansion(**kwargs)
+    def get(
+        self,
+        query,
+        run_expansions=False,
+        rerun=False,
+        save_kwargs={},
+        **kwargs,
+    ):
+        for expansion in self.get_item(query).get_expansions(**kwargs):
+            if rerun:
+                expansion.path.unlink()
 
-        if rerun:
-            expansion.path.unlink()
+            if expansion.path.exists():
+                result = expansion.result
+            else:
+                print(f"running: {expansion.short_path}")
+                result = expansion.run(save_kwargs=save_kwargs, **kwargs)
 
-        if expansion.path.exists():
-            result = expansion.result
-        else:
-            print(f"running: {expansion.path}")
-            result = expansion.run(save_kwargs=save_kwargs, **kwargs)
-
-        return expansion.result
+        return result
 
     def get_path(self, query, run_expansions=False, **kwargs):
-        expansions = self.get_item(query).get_expansions(**kwargs)
-
-        if not run_expansions:
-            expansions = expansions[:1]
-
-        paths = [expansion.path for expansion in expansions]
+        paths = [e.path for e in self.get_item(query).get_expansions(**kwargs)]
 
         if len(paths) == 1:
             return paths[0]
@@ -658,13 +664,7 @@ class Runner(object):
         return paths
 
     def remove(self, query, run_expansions=False, **kwargs):
-        expansions = self.get_item(query).get_expansions(**kwargs)
-
-        if not run_expansions:
-            expansions = expansions[:1]
-
-        paths = [expansion.path for expansion in expansions]
-        for path in paths:
+        for path in [e.path for e in self.get_item(query).get_expansions(**kwargs)]:
             if path.exists():
                 path.unlink()
 
