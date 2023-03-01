@@ -113,7 +113,7 @@ class Expansion(object):
     @property
     def short_path(self):
         path = str(self.path)
-        path = path.replace(str(self.item.results_dir), '')
+        path = path.replace(str(self.item.results_dir) + '/', '')
         path = path.rstrip(self.item.suffix)
         return path
 
