@@ -639,7 +639,7 @@ class Runner(object):
         if expansion.path.exists():
             result = expansion.result
         else:
-            print(f"running: {expansion.item.location}")
+            print(f"running: {expansion.path}")
             result = expansion.run(save_kwargs=save_kwargs, **kwargs)
 
         return expansion.result
@@ -656,6 +656,17 @@ class Runner(object):
             return paths[0]
 
         return paths
+
+    def remove(self, query, run_expansions=False, **kwargs):
+        expansions = self.get_item(query).get_expansions(**kwargs)
+
+        if not run_expansions:
+            expansions = expansions[:1]
+
+        paths = [expansion.path for expansion in expansions]
+        for path in paths:
+            if path.exists():
+                path.unlink()
 
     ################################################################################
     #
