@@ -114,7 +114,7 @@ class Expansion(object):
     def short_path(self):
         path = str(self.path)
         path = path.replace(str(self.item.results_dir), '')
-        path = path.rstrip(self.item.suffix, '')
+        path = path.rstrip(self.item.suffix)
         return path
 
     def run(self, save_kwargs={}, **kwargs):
