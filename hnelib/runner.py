@@ -384,7 +384,7 @@ class Item(object):
             for key, values in expansions.items():
                 self.arg_defaults[key] = self.arg_defaults.get(key, values[0])
 
-    def get_expansions(self, run_expansions=False, **kwargs):
+    def get_expansions(self, all_expansions=False, **kwargs):
         expansions = []
         for expansion in self.expansions:
             if any([kwargs[k] != v for k, v in expansion.kwargs.items() if k in kwargs]):
@@ -395,7 +395,7 @@ class Item(object):
         if not expansions:
             raise ExpansionNotFound
 
-        if not run_expansions:
+        if not all_expansions:
             expansions = expansions[:1]
 
         return expansions
@@ -625,11 +625,11 @@ class Runner(object):
     def run_item(
         self,
         item,
-        run_expansions=False,
+        all_expansions=False,
         save_kwargs={},
         **kwargs,
     ):
-        expansions = item.get_expansions(run_expansions=run_expansions, **kwargs)
+        expansions = item.get_expansions(all_expansions=all_expansions, **kwargs)
 
         for expansion in item.get_expansions(**kwargs):
             expansion.run(save_kwargs=save_kwargs, **kwargs)
@@ -640,12 +640,12 @@ class Runner(object):
     def get(
         self,
         query,
-        run_expansions=False,
+        all_expansions=False,
         rerun=False,
         save_kwargs={},
         **kwargs,
     ):
-        expansions = self.get_item(query).get_expansions(run_expansions=run_expansions, **kwargs)
+        expansions = self.get_item(query).get_expansions(all_expansions=all_expansions, **kwargs)
 
         for expansion in expansions:
             if rerun:
@@ -659,8 +659,8 @@ class Runner(object):
 
         return result
 
-    def get_path(self, query, run_expansions=False, **kwargs):
-        expansions = self.get_item(query).get_expansions(run_expansions=run_expansions, **kwargs)
+    def get_path(self, query, all_expansions=False, **kwargs):
+        expansions = self.get_item(query).get_expansions(all_expansions=all_expansions, **kwargs)
 
         paths = [e.path for e in expansions]
 
@@ -669,8 +669,8 @@ class Runner(object):
 
         return paths
 
-    def remove(self, query, run_expansions=False, **kwargs):
-        expansions = self.get_item(query).get_expansions(run_expansions=run_expansions, **kwargs)
+    def remove(self, query, all_expansions=False, **kwargs):
+        expansions = self.get_item(query).get_expansions(all_expansions=all_expansions, **kwargs)
 
         for path in [e.path for e in expansions]:
             if path.exists():
