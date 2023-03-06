@@ -647,6 +647,7 @@ class Runner(object):
     ):
         expansions = self.get_item(query).get_expansions(all_expansions=all_expansions, **kwargs)
 
+        results = []
         for expansion in expansions:
             if rerun:
                 expansion.path.unlink()
@@ -656,6 +657,11 @@ class Runner(object):
             else:
                 print(f"running: {expansion.short_path}")
                 result = expansion.run(save_kwargs=save_kwargs, **kwargs)
+
+            results.append(result)
+
+        if len(results) == 1:
+            return results[0]
 
         return result
 
