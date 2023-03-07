@@ -228,7 +228,6 @@ def bar(
         draw_kwargs['color'] = df['FaceColor']
 
     if 'BarHatch' in df.columns:
-        draw_kwargs['color'] = 'none'
         draw_kwargs['hatch'] = df['BarHatch']
 
     ax.bar(
