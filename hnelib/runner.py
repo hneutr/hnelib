@@ -630,13 +630,13 @@ class Runner(object):
         **kwargs,
     ):
         expansions = item.get_expansions(all_expansions=all_expansions, **kwargs)
-        print(expansions)
 
-        for expansion in item.get_expansions(**kwargs):
+        results = []
+        for expansion in expansions:
             expansion.run(save_kwargs=save_kwargs, **kwargs)
-            result = expansion.result
+            results.append(expansion.result)
 
-        return result
+        return hnelib.util.as_element(results)
 
     def get(
         self,
@@ -661,20 +661,12 @@ class Runner(object):
 
             results.append(result)
 
-        if len(results) == 1:
-            return results[0]
-
-        return result
+        return hnelib.util.as_element(results)
 
     def get_path(self, query, all_expansions=False, **kwargs):
         expansions = self.get_item(query).get_expansions(all_expansions=all_expansions, **kwargs)
 
-        paths = [e.path for e in expansions]
-
-        if len(paths) == 1:
-            return paths[0]
-
-        return paths
+        return hnelib.util.as_element([e.path for e in expansions])
 
     def remove(self, query, all_expansions=False, **kwargs):
         expansions = self.get_item(query).get_expansions(all_expansions=all_expansions, **kwargs)

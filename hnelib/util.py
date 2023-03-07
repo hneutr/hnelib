@@ -112,6 +112,23 @@ def as_list(thing=None):
 
     return thing
 
+
+def as_element(thing):
+    """
+    turns a list into an element if possible
+
+    `thing` should be a list
+
+    returns:
+    - if len(thing) == 1: thing[0]
+    - else: thing
+    """
+    if len(thing) == 1:
+        thing = thing[0]
+
+    return thing
+
+
 def num_to_pretty_str(numbers):
     numbers = as_list(numbers)
 
