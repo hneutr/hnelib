@@ -9,6 +9,8 @@ import matplotlib.pyplot as plt
 import os
 import pandas as pd
 
+import hnelib.util
+
 # TODO:
 # - allow for not writing the full terminal path if there is only one match for
 # the path
