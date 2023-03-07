@@ -630,6 +630,7 @@ class Runner(object):
         **kwargs,
     ):
         expansions = item.get_expansions(all_expansions=all_expansions, **kwargs)
+        print(expansions)
 
         for expansion in item.get_expansions(**kwargs):
             expansion.run(save_kwargs=save_kwargs, **kwargs)
