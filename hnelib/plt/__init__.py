@@ -229,7 +229,7 @@ def bar(
 
     if 'BarHatch' in df.columns:
         draw_kwargs['color'] = 'none'
-        draw_kwargs['hatch'] = df['Hatch']
+        draw_kwargs['hatch'] = df['BarHatch']
 
     ax.bar(
         df['Place'],
