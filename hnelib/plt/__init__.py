@@ -227,7 +227,7 @@ def bar(
         draw_kwargs['edgecolor'] = df['BarEdgeColor'] if 'BarEdgeColor' in cols else df['BarColor']
         draw_kwargs['color'] = df['FaceColor']
 
-    if 'Hatch' in df.columns:
+    if 'BarHatch' in df.columns:
         draw_kwargs['color'] = 'none'
         draw_kwargs['hatch'] = df['Hatch']
 
