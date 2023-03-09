@@ -260,7 +260,7 @@ def bar(
             )
 
     if 'Label' in df.columns:
-        df['LabelPlace'] = df.groupby('Group')['Place'].transform('mean')
+        df['LabelPlace'] = df.groupby('Label')['Place'].transform('mean')
 
         hnelib.plt.axes.set_x_text(
             ax,
