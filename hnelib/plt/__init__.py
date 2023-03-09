@@ -184,7 +184,7 @@ def bar(
     df['Bar'] = df['Bar'].apply(bars.index)
 
     if 'Stack' not in cols:
-        df['Stack'] = 0
+        df['Stack'] = df['Bar']
 
     stacks = sorted(df['Stack'].unique())
     df['Stack'] = df['Stack'].apply(stacks.index)
