@@ -285,6 +285,7 @@ def bar(
         ax.set_xlim(min(df['Place']) - margin, max(df['Place']) + margin)
 
     for group in sorted(df['Group'].unique()):
+        print(group)
         if not group:
             continue
 
