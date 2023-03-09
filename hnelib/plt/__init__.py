@@ -188,7 +188,7 @@ def bar(
     df['Stack'] = df['Stack'].apply(stacks.index)
 
     if 'Group' not in cols:
-        df['Group'] = df['Stack']
+        df['Group'] = 0
 
     groups = sorted(df['Group'].unique())
     df['Group'] = df['Group'].apply(groups.index)
