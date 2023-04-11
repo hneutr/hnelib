@@ -27,7 +27,7 @@ BACKWARDS_ARROW = {
 def __get_arrows__():
     arrows = {
         '->': DEFAULT_ARROW,
-        '<-': BACKWARDS_ARROW
+        '<-': BACKWARDS_ARROW,
         '-': DEFAULT_LINE,
     }
 
