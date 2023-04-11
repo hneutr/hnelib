@@ -17,11 +17,17 @@ DEFAULT_LINE = {
     'shrinkB': 0,
 }
 
+BACKWARDS_ARROW = {
+    **DEFAULT_ARROW,
+    'arrowstyle': '<-, head_width=.15, head_length=.25',
+}
+
 
 @functools.lru_cache
 def __get_arrows__():
     arrows = {
         '->': DEFAULT_ARROW,
+        '<-': BACKWARDS_ARROW
         '-': DEFAULT_LINE,
     }
 

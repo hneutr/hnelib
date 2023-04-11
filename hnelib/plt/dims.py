@@ -2,9 +2,9 @@
 Nature guidelines on widths:
 - 1 col: 89mm
 - 1.5 col:
-- small: 120mm
-- medium: 128mm
-- large: 136mm
+    - small: 120mm
+    - medium: 128mm
+    - large: 136mm
 - 2 col: 183mm
 """
 import itertools
