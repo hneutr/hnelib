@@ -122,6 +122,7 @@ def bar(
     # group
     group_col=None,
     group_pad=.5,
+    separate_groups=True,
     # label
     label_col=None,
     label_color_col=None,
@@ -284,15 +285,16 @@ def bar(
     if len(df):
         ax.set_xlim(min(df['Place']) - margin, max(df['Place']) + margin)
 
-    for group in sorted(df['Group'].unique()):
-        if not group:
-            continue
+    if separate_groups:
+        for group in sorted(df['Group'].unique()):
+            if not group:
+                continue
 
-        place = group * group_size - group_pad / 2
+            place = group * group_size - group_pad / 2
 
-        ax.axvline(
-            place,
-            color=colors['-'],
-            lw=.5,
-            zorder=0,
-        )
+            ax.axvline(
+                place,
+                color=colors['-'],
+                lw=.5,
+                zorder=0,
+            )
