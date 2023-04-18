@@ -86,7 +86,7 @@ def set_axis_text(
         set_fn(ax, fn_suffix='label', axis=which)(label)
 
         if label_color:
-            ax.tick_params(axis=which, colors=label_color)
+            getattr(ax, f"{which}axis").get_label().set_color(label_color)
 
 
 def set_x_text(*args, **kwargs):
