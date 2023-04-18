@@ -160,7 +160,7 @@ def num_to_pretty_str(numbers):
         strings.append(string)
 
     if len(strings) == 1:
-        strings = [strings[0]]
+        return strings[0]
 
     return strings
 
