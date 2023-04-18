@@ -57,7 +57,7 @@ def label_subplots(
 def set_axis_text(
     ax,
     df,
-    tick_col=None,,
+    tick_col=None,
     tick_color_col=None,
     label_col=None,
     label_color_col=None,
