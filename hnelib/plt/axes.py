@@ -59,13 +59,15 @@ def set_axis_text(
     df,
     tick_col=None,,
     tick_color_col=None,
-    label=None,
-    label_color=None,
+    label_col=None,
+    label_color_col=None,
     which='x',
 ):
     df = hnelib.pd.util.rename_df(df, {
         'Tick': tick_col,
         'TickColor': tick_color_col,
+        'Label': label_col,
+        'LabelColor': label_color_col,
     })
 
     ticks = df['Tick'] if 'Tick' in df.columns else []
@@ -76,11 +78,11 @@ def set_axis_text(
         for color, tick in zip(df['Color'], ticklabels):
             tick.set_color(color)
 
-    if label:
-        set_fn(ax, fn_suffix='ticklabels', axis=which)(label)
+    if 'Label' in df.columns:
+        set_fn(ax, fn_suffix='ticklabels', axis=which)(df['Label'])
 
-        if label_color:
-            ax.tick_params(axis=which, colors=label_color)
+        if 'LabelColor' in df.columns:
+            ax.tick_params(axis=which, colors=df.iloc[0]['LabelColor'])
 
 
 def set_x_text(*args, **kwargs):
