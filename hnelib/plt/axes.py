@@ -59,30 +59,34 @@ def set_axis_text(
     df,
     tick_col=None,
     tick_color_col=None,
-    label_col=None,
-    label_color_col=None,
+    tick_label_col=None,
+    label=None,
+    label_color=None,
     which='x',
 ):
     df = hnelib.pd.util.rename_df(df, {
         'Tick': tick_col,
         'TickColor': tick_color_col,
-        'Label': label_col,
-        'LabelColor': label_color_col,
+        'TickLabel': tick_label_col,
     })
 
     ticks = df['Tick'] if 'Tick' in df.columns else []
     set_fn(ax, fn_suffix='ticks', axis=which)(ticks)
 
-    if 'TickColor' in df.columns and ticks:
-        ticklabels = get_fn(ax, fn_suffix='ticklabels', axis=which)()
-        for color, tick in zip(df['Color'], ticklabels):
-            tick.set_color(color)
+    if ticks:
+        if 'TickColor' in df.columns:
+            ticklabels = get_fn(ax, fn_suffix='ticklabels', axis=which)()
+            for color, tick in zip(df['Color'], ticklabels):
+                tick.set_color(color)
 
-    if 'Label' in df.columns:
-        set_fn(ax, fn_suffix='ticklabels', axis=which)(df['Label'])
+        if 'TickLabel' in df.columns:
+            set_fn(ax, fn_suffix='ticklabels', axis=which)(df['TickLabel'])
 
-        if 'LabelColor' in df.columns:
-            ax.tick_params(axis=which, colors=df.iloc[0]['LabelColor'])
+    if label:
+        set_fn(ax, fn_suffix='label', axis=which)(label)
+
+        if label_color:
+            ax.tick_params(axis=which, colors=label_color)
 
 
 def set_x_text(*args, **kwargs):
