@@ -68,7 +68,8 @@ def set_axis_text(
         'Color': color_col,
     })
 
-    set_fn(ax, fn_suffix='ticks', axis=which)(df['Tick'])
+    ticks = df['Tick'] if 'Tick' in df.columns else []
+    set_fn(ax, fn_suffix='ticks', axis=which)(ticks)
 
     if 'Label' in df.columns:
         set_fn(ax, fn_suffix='ticklabels', axis=which)(df['Label'])
