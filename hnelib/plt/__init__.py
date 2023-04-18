@@ -298,3 +298,5 @@ def bar(
                 lw=.5,
                 zorder=0,
             )
+
+    return df
