@@ -3,8 +3,8 @@ import numpy as np
 
 STRS_TO_ESCAPE = ['%', '&', '#']
 STRS_TO_REPLACE = {
-    '<': '$\lt$',
-    '>': '$\gt$',
+    '<': '$<$',
+    '>': '$>$',
     '=': '$\eq$',
 }
 
