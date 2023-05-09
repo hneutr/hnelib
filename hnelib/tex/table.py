@@ -10,7 +10,7 @@ STRS_TO_REPLACE = {
 
 
 def sanitize_string(string, to_escape=STRS_TO_ESCAPE, to_replace=STRS_TO_REPLACE):
-    to_replace = to_replace or {s: f"\{s}" for s in to_escape}
+    to_replace = to_replace | {s: f"\{s}" for s in to_escape}
 
     for find, replace in to_replace.items():
         string = string.replace(find, replace)
