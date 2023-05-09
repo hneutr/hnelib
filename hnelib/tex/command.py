@@ -92,10 +92,44 @@ def generate(collections):
 # 2. update references
 #   - for each file in the list of files to examine:
 #       - change the old command to the new command
-
 def add_namespace(
     namespace,
     command_paths=[],
     text_paths=[],
+    write=False,
 ):
-    1
+    command_to_namespaced_command = get_namespaced_commands(namespace, command_paths)
+
+    for path in command_paths + text_paths:
+        namespace_commands(path, command_to_namespaced_command, write=write)
+
+def get_namespaced_commands(namespace, paths):
+    command_to_namespaced_command = {}
+    for path in paths:
+
+        lines = []
+        for line in path.read_text().split('\n'):
+            if line.startswith('\\newcommand{\\'):
+                prefix, _line = line.split("{", 1)
+                command, suffix = _line.split("}", 1)
+                namespaced_command = command + namespace
+
+                command_to_namespaced_command[command] = namespaced_command
+
+                line = prefix + "{" + namespaced_command + "}" + suffix
+
+            lines.append(line)
+
+    return command_to_namespaced_command
+
+def namespace_commands(path, command_to_namespaced_command, write=False):
+    text = path.read_text()
+
+    for command in sorted(command_to_namespaced_command.keys(), key=lambda c: len(c), reverse=True):
+        text = text.replace(command, str(hash(command)))
+
+    for command, namespaced_command in command_to_namespaced_command.items():
+        text = text.replace(str(hash(command)), namespaced_command)
+
+    if write:
+        path.write_text(text)
