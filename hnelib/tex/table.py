@@ -29,7 +29,7 @@ def sanitize_df(df):
     return df
 
 
-def df_to_path(df, path, column_alignments=[], sanitize=True):
+def format_df(df, column_alignments=[], sanitize=True):
     """
     adds some lines that I like to tables
 
@@ -51,4 +51,4 @@ def df_to_path(df, path, column_alignments=[], sanitize=True):
     for rule in ['\\toprule', '\midrule', '\\bottomrule']:
         content = content.replace(rule, f"{rule}\n\\hline")
 
-    path.write_text(content)
+    return content
