@@ -123,10 +123,10 @@ def bar(
     group_col=None,
     group_pad=.5,
     separate_groups=True,
-    # label
-    label_col=None,
-    label_color_col=None,
-    add_label_col=None,
+    # tick
+    tick_label_col=None,
+    tick_color_col=None,
+    add_tick_col=None,
     # etc
     draw_kwargs={},
 ):
@@ -168,9 +168,9 @@ def bar(
         # group args
         'Group': group_col,
         # label args
-        'Label': label_col,
-        'LabelColor': label_color_col,
-        'AddLabel': add_label_col,
+        'TickLabel': tick_label_col,
+        'TickColor': tick_color_col,
+        'AddTick': add_tick_col,
     })
 
     cols = df.columns
@@ -262,22 +262,22 @@ def bar(
                 fontsize=font.size['annotation'],
             )
 
-    if 'Label' in df.columns:
-        labels_df = df.copy()
+    if 'TickLabel' in df.columns:
+        tick_labels_df = df.copy()
 
-        if 'AddLabel' in labels_df.columns:
-            labels_df = labels_df[
-                labels_df['AddLabel']
+        if 'AddTick' in tick_labels_df.columns:
+            tick_labels_df = tick_labels_df[
+                tick_labels_df['AddTick']
             ]
 
-        labels_df['LabelPlace'] = labels_df.groupby('Label')['Place'].transform('mean')
+        tick_labels_df['Tick'] = tick_labels_df.groupby('TickLabel')['Place'].transform('mean')
 
         hnelib.plt.axes.set_x_text(
             ax,
-            labels_df,
-            tick_col='LabelPlace',
-            label_col='Label',
-            color_col='LabelColor',
+            tick_labels_df,
+            tick_col='Tick',
+            tick_label_col='TickLabel',
+            tick_color_col='TickColor',
         )
 
     margin = max(.5, 1.5 * group_pad)
