@@ -240,3 +240,25 @@ class TestItem:
         expected = Item.CONFIG_DEFAULTS['results_dir'].joinpath('2', 'a.txt')
 
         expect(actual).to(equal(expected))
+
+    def test_converts_bools_to_strings(self):
+        def fn(a=True, b=True):
+            return {k: v * dict2[k] for k, v in dict1.items()}
+
+        path_prefix = 'bool-args-test'
+        item = Item(
+            do=fn,
+            suffix_expansions={'b': [False, True]},
+            directory_expansions={'a': [False, True]},
+            path_components = [path_prefix],
+        )
+
+        actual = [e.path for e in item.expansions]
+        expected = [
+            Item.CONFIG_DEFAULTS['results_dir'].joinpath('not-a', f'{path_prefix }-not-b.txt'),
+            Item.CONFIG_DEFAULTS['results_dir'].joinpath('not-a', f'{path_prefix }-b.txt'),
+            Item.CONFIG_DEFAULTS['results_dir'].joinpath('a', f'{path_prefix }-not-b.txt'),
+            Item.CONFIG_DEFAULTS['results_dir'].joinpath('a', f'{path_prefix }-b.txt'),
+        ]
+
+        expect(actual).to(equal(expected))

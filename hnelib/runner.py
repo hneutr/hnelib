@@ -70,17 +70,35 @@ class Expansion(object):
     @cached_property
     def name(self):
         # iterate over expansions (rather than kwargs) so order is consistent
-        parts = [self.kwargs[k] for k in self.item.prefix_expansions if k in self.kwargs]
+        # parts = [self.kwargs[k] for k in self.item.prefix_expansions if k in self.kwargs]
+        parts = self.stringify_expansion_set(self.item.prefix_expansions, self.kwargs)
 
         if not self.item.as_directory:
             parts.append(self.item.name)
 
         # iterate over expansions (rather than kwargs) so order is consistent
-        parts += [self.kwargs[k] for k in self.item.suffix_expansions if k in self.kwargs]
+        # parts += [self.kwargs[k] for k in self.item.suffix_expansions if k in self.kwargs]
+        parts += self.stringify_expansion_set(self.item.suffix_expansions, self.kwargs)
 
         parts = [self.stringify_arg(p) for p in parts]
 
         return self.ARG_SEP.join(parts) or self.ARG_SEP
+
+    @classmethod
+    def stringify_expansion_set(cls, expansions, kwargs):
+        parts = []
+
+        for key in [key for key in expansions if key in kwargs]:
+            part = kwargs[key]
+            try:
+                if set(expansions[key]) == {False, True}:
+                    part = key if part else f"not-{key}"
+            except TypeError:
+                pass
+
+            parts.append(cls.stringify_arg(part))
+
+        return parts
 
     @cached_property
     def directory(self):
@@ -90,7 +108,8 @@ class Expansion(object):
         if self.item.as_directory:
             parts.append(self.item.name)
 
-        parts += [self.kwargs[k] for k in self.item.directory_expansions if k in self.kwargs]
+        # parts += [self.kwargs[k] for k in self.item.directory_expansions if k in self.kwargs]
+        parts += self.stringify_expansion_set(self.item.directory_expansions, self.kwargs)
         parts += self.item.subdirs
 
         parts = [self.stringify_arg(p) for p in parts]
