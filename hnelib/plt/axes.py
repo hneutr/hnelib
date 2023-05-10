@@ -76,7 +76,7 @@ def set_axis_text(
     if ticks:
         if 'TickColor' in df.columns:
             ticklabels = get_fn(ax, fn_suffix='ticklabels', axis=which)()
-            for color, tick in zip(df['Color'], ticklabels):
+            for color, tick in zip(df['TickColor'], ticklabels):
                 tick.set_color(color)
 
         if 'TickLabel' in df.columns:
