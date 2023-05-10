@@ -98,7 +98,7 @@ def categorical(
             df,
             tick_col='X',
             label=df.iloc[0]['Label'],
-            color=df.iloc[0]['LabelColor'],
+            label_color=df.iloc[0]['LabelColor'],
         )
 
 
