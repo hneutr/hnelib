@@ -70,7 +70,7 @@ def set_axis_text(
         'TickLabel': tick_label_col,
     })
 
-    ticks = df['Tick'] if 'Tick' in df.columns else []
+    ticks = list(df['Tick']) if 'Tick' in df.columns else []
     set_fn(ax, fn_suffix='ticks', axis=which)(ticks)
 
     if ticks:
