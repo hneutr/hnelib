@@ -58,16 +58,16 @@ def set_axis_text(
     ax,
     df,
     tick_col=None,
-    tick_color_col=None,
     tick_label_col=None,
+    tick_color_col=None,
     label=None,
     label_color=None,
     which='x',
 ):
     df = hnelib.pd.util.rename_df(df, {
         'Tick': tick_col,
-        'TickColor': tick_color_col,
         'TickLabel': tick_label_col,
+        'TickColor': tick_color_col,
     })
 
     ticks = list(df['Tick']) if 'Tick' in df.columns else []

@@ -20,8 +20,8 @@ def categorical(
     facecolor_col=None,
     error_col=None,
     errorcolor_col=None,
-    ticklabel_col=None,
-    ticklabel_color_col=None,
+    tick_label_col=None,
+    tick_color_col=None,
     size_col=None,
     fade_facecolor=True,
     zorder=2,
@@ -36,8 +36,8 @@ def categorical(
         'EdgeColor': edgecolor_col,
         'FaceColor': facecolor_col,
         'ErrorColor': errorcolor_col,
-        'TickLabel': ticklabel_col,
-        'TickLabelColor': ticklabel_color_col,
+        'TickLabel': tick_label_col,
+        'TickColor': tick_color_col,
         'Error': error_col,
         'Size': size_col,
     })
@@ -97,8 +97,8 @@ def categorical(
             ax,
             df,
             tick_col='X',
-            ticklabel_col='TickLabel',
-            ticklabel_color='TickLabelColor',
+            tick_color_col='TickColor',
+            tick_label_col='TickLabel',
         )
 
 
