@@ -17,7 +17,6 @@ import hnelib.util
 # - in `get`, have option to rerun:
 #     - shallowly: just the item called
 #     - deeply: rerun everything it calls
-# - have boolean args convert to "{param}"/"not-{param}" in paths
 # - support conditional expansions:
 #   - make a ConditionalExpansion object:
 #         'some_arg_with_conditions': ConditionalType([list, of, values, to, expand], {
@@ -31,6 +30,9 @@ import hnelib.util
 #       - Item.get_expansions()
 #       - Item.expansions
 #           - filter expansions by "constraints_by_key"
+# - have parameters in parents be applied to the path first, so that things are in a sensical
+# ordering
+# - have specify what a function ingestions, so that you can deep/shallowly rerun
 
 class AmbiguousCollectionQuery(Exception):
     pass
