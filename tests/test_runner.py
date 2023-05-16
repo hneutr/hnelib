@@ -135,6 +135,44 @@ class TestRunner:
 
         expect(actual).to(equal(expected))
 
+    def test_orders_expansion_components(self):
+        def test_fn(x=None, y=None, z=None):
+            print(f"{x} {y} {z}")
+
+        a_x_exp = ['x1', 'x2']
+        a_y_exp = ['y1', 'y2']
+        b_z_exp = ['z1', 'z2']
+        c_z_exp = ['z1', 'z2']
+        c_x_exp = ['X1', 'X2']
+
+        runner = Runner(
+            collection={
+                'a': {
+                    'directory_expansions': {'x': a_x_exp, 'y': a_y_exp},
+                    'b': {'directory_expansions': {'z': b_z_exp}, 'do': test_fn},
+                    'c': {'directory_expansions': {'z': c_z_exp, 'x': c_x_exp}, 'do': test_fn},
+                },
+            },
+        )
+
+        items = [
+            Item(
+                do=test_fn,
+                path_components=['a', 'b'],
+                directory_expansions={'x': a_x_exp, 'y': a_y_exp, 'z': b_z_exp},
+            ),
+            Item(
+                do=test_fn,
+                path_components=['a', 'c'],
+                directory_expansions={'x': c_x_exp, 'y': a_y_exp, 'z': c_z_exp},
+            ),
+        ]
+
+        actual = [e.path for i in runner.items for e in i.expansions]
+        expected = [e.path for i in items for e in i.expansions]
+
+        expect(actual).to(equal(expected))
+
 
 class TestItem:
     def test_sanitizes_function_arguments(self):

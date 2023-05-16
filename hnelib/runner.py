@@ -30,9 +30,6 @@ import hnelib.util
 #       - Item.get_expansions()
 #       - Item.expansions
 #           - filter expansions by "constraints_by_key"
-# - have parameters in parents be applied to the path first, so that things are in a sensical
-# ordering
-# - have specify what a function ingestions, so that you can deep/shallowly rerun
 
 class AmbiguousCollectionQuery(Exception):
     pass
@@ -71,15 +68,11 @@ class Expansion(object):
 
     @cached_property
     def name(self):
-        # iterate over expansions (rather than kwargs) so order is consistent
-        # parts = [self.kwargs[k] for k in self.item.prefix_expansions if k in self.kwargs]
         parts = self.stringify_expansion_set(self.item.prefix_expansions, self.kwargs)
 
         if not self.item.as_directory:
             parts.append(self.item.name)
 
-        # iterate over expansions (rather than kwargs) so order is consistent
-        # parts += [self.kwargs[k] for k in self.item.suffix_expansions if k in self.kwargs]
         parts += self.stringify_expansion_set(self.item.suffix_expansions, self.kwargs)
 
         parts = [self.stringify_arg(p) for p in parts]
@@ -90,6 +83,7 @@ class Expansion(object):
     def stringify_expansion_set(cls, expansions, kwargs):
         parts = []
 
+        # iterate over expansions (rather than kwargs) so order is consistent
         for key in [key for key in expansions if key in kwargs]:
             part = kwargs[key]
             try:
@@ -104,13 +98,11 @@ class Expansion(object):
 
     @cached_property
     def directory(self):
-        # iterate over expansions (rather than kwargs) so order is consistent
         parts = []
 
         if self.item.as_directory:
             parts.append(self.item.name)
 
-        # parts += [self.kwargs[k] for k in self.item.directory_expansions if k in self.kwargs]
         parts += self.stringify_expansion_set(self.item.directory_expansions, self.kwargs)
         parts += self.item.subdirs
 
@@ -325,10 +317,6 @@ class Item(object):
             new_config[key] = copy.deepcopy(val)
 
         return new_config
-
-    @classmethod
-    def from_config(cls, config):
-        return cls(**config)
 
     def sanitize_do_arguments(self):
         (_args, _varargs, _kwargs, _, _, _, _) = inspect.getfullargspec(self.do)
@@ -564,7 +552,7 @@ class Runner(object):
 
         items = []
         if Item.is_item(config):
-            items.append(Item.from_config(config))
+            items.append(Item(**config))
         else:
             for key, subcollection in collection.items():
                 items += cls.parse_collection(
