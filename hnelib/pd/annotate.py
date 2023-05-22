@@ -197,3 +197,28 @@ def round_to_nearest(df, col, to_col=None, nearest=1):
     to_col = to_col or col
     df[to_col] = df[col].apply(lambda v: round(v / nearest) * nearest)
     return df
+
+
+def t_test(
+    df,
+    a_col,
+    b_col,
+    to_col='P',
+    groupby_cols=None,
+    **kwargs,
+):
+    import hnelib.stat
+    df, groupby_cols = hnelib.pd.util.get_groupby_cols(df, groupby_cols)
+
+    annotations = []
+    for _, rows in df.groupby(groupby_cols):
+        annotations.append({
+            **hnelib.pd.util.get_groupby_dict(rows, groupby_cols),
+            to_col: hnelib.stat.test.t(
+                a=rows[a_col],
+                b=rows[b_col],
+                **kwargs,
+            ),
+        })
+
+    return _add_annotations(df, annotations, join_cols=groupby_cols)
