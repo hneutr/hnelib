@@ -222,3 +222,20 @@ def t_test(
         })
 
     return _add_annotations(df, annotations, join_cols=groupby_cols)
+
+def significance_stars(
+    df,
+    col,
+    to_col,
+):
+    stars = []
+    for p in df[col]:
+        if p < .001:
+            stars.append('***')
+        elif p < .01:
+            stars.append('**')
+        if p < .05:
+            stars.append('*')
+
+    df[to_col] = stars
+    return df
