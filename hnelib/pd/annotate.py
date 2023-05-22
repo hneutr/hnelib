@@ -225,8 +225,8 @@ def t_test(
 
 def significance_stars(
     df,
-    col,
-    to_col,
+    col='P',
+    to_col='Stars',
 ):
     stars = []
     for p in df[col]:
