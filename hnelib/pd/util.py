@@ -15,7 +15,7 @@ def is_fake_col(col):
 
 
 def get_groupby_dict(row, groupby_cols):
-    if isinstance(row, pd.Series):
+    if isinstance(row, pd.DataFrame):
         row = row.iloc[0]
 
     return {col: row[col] for col in groupby_cols if not is_fake_col(col)}
