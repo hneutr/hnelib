@@ -230,12 +230,15 @@ def significance_stars(
 ):
     stars = []
     for p in list(df[col]):
+        n = 0
         if p < .001:
-            stars.append('***')
+            n = 3
         elif p < .01:
-            stars.append('**')
-        if p < .05:
-            stars.append('*')
+            n = 2
+        elif p < .05:
+            n = 1
+
+        stars.append('*' * n)
 
     df[to_col] = stars
     return df
