@@ -29,4 +29,4 @@ def correct_for_multiple_hypotheses(
     return corrected_p_vals
 
 def t(a, b, alternative='two-sided', **kwargs):
-    return scip.stats.ttest_ind(a=a, b=b, alternative=alternative, **kwargs)
+    return scipy.stats.ttest_ind(a=a, b=b, alternative=alternative, **kwargs)
