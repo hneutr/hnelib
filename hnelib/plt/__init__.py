@@ -110,6 +110,7 @@ def bar(
     df,
     # bar
     size_col,
+    width_col=None,
     bar_col=None,
     bar_color_col=None,
     bar_edge_color_col=None,
@@ -157,6 +158,7 @@ def bar(
     """
     df = hnelib.pd.util.rename_df(df, {
         'Size': size_col,
+        'Width': width_col,
         'Bar': bar_col,
         'BarColor': bar_color_col,
         'BarEdgeColor': bar_edge_color_col,
@@ -232,6 +234,9 @@ def bar(
 
     if 'BarHatch' in df.columns:
         draw_kwargs['hatch'] = df['BarHatch']
+
+    if 'Width' in df.columns:
+        draw_kwargs['width'] = df['Width']
 
     ax.bar(
         df['Place'],
