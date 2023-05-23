@@ -110,7 +110,7 @@ def bar(
     df,
     # bar
     size_col,
-    width_col=None,
+    stretch_col=None,
     bar_col=None,
     bar_color_col=None,
     bar_edge_color_col=None,
@@ -129,7 +129,8 @@ def bar(
     tick_color_col=None,
     add_tick_col=None,
     # etc
-    draw_kwargs={},
+    horizontal=False,
+    **kwargs,
 ):
     """
     - bars:
@@ -156,9 +157,30 @@ def bar(
     - F, G
     - H
     """
+    if horizontal:
+        draw = ax.barh
+        axline = ax.axhline
+        set_lim = ax.set_ylim
+        set_text = hnelib.plt.axes.set_y_text
+        which = 'y'
+        bar_start_key = 'left'
+        stretch_key = 'height'
+        annotation_x_key = 'Size'
+        annotation_y_key = 'Place'
+    else:
+        draw = ax.bar
+        axline = ax.axvline
+        set_lim = ax.set_xlim
+        set_text = hnelib.plt.axes.set_x_text
+        which = 'x'
+        bar_start_key = 'bottom'
+        stretch_key = 'width'
+        annotation_x_key = 'Place'
+        annotation_y_key = 'Size'
+
     df = hnelib.pd.util.rename_df(df, {
         'Size': size_col,
-        'Width': width_col,
+        'Stretch': stretch_col,
         'Bar': bar_col,
         'BarColor': bar_color_col,
         'BarEdgeColor': bar_edge_color_col,
@@ -176,9 +198,7 @@ def bar(
     })
 
     cols = df.columns
-    stacked = 'Stack' in cols
-    grouped = 'Group' in cols
-    group_pad = group_pad if grouped else 0
+    group_pad = group_pad if 'Group' in cols else 0
 
     if 'Bar' not in cols:
         df['Bar'] = [i for i in range(len(df))]
@@ -201,21 +221,21 @@ def bar(
     group_size = group_pad + df['Stack'].nunique()
     df['Place'] = df['Group'] * group_size + group_pad + df['Stack']
 
-    bottoms = []
+    bar_starts = []
     for (group_order, stack_order), bars in df.groupby(['Group', 'Stack']):
-        bottom = 0
+        bar_start = 0
         for i, row in bars.sort_values(by='Bar').iterrows():
-            bottoms.append({
+            bar_starts.append({
                 'Group': group_order,
                 'Stack': stack_order,
                 'Bar': row['Bar'],
-                'BarBottom': bottom,
+                'BarStart': bar_start,
             })
 
-            bottom += row['Size']
+            bar_start += row['Size']
 
     df = df.merge(
-        pd.DataFrame(bottoms),
+        pd.DataFrame(bar_starts),
         on=[
             'Bar',
             'Stack',
@@ -223,27 +243,28 @@ def bar(
         ]
     )
 
+    kwargs[bar_start_key] = df['BarStart']
+
     if 'BarColor' in cols:
         df['FaceColor'] = df['BarColor']
 
         if fade_bar_facecolor:
             df['FaceColor'] = df['FaceColor'].apply(hnelib.plt.color.set_alpha)
 
-        draw_kwargs['edgecolor'] = df['BarEdgeColor'] if 'BarEdgeColor' in cols else df['BarColor']
-        draw_kwargs['color'] = df['FaceColor']
+        kwargs['edgecolor'] = df['BarEdgeColor'] if 'BarEdgeColor' in cols else df['BarColor']
+        kwargs['color'] = df['FaceColor']
 
-    if 'BarHatch' in df.columns:
-        draw_kwargs['hatch'] = df['BarHatch']
+    if 'BarHatch' in cols:
+        kwargs['hatch'] = df['BarHatch']
 
-    if 'Width' in df.columns:
-        draw_kwargs['width'] = df['Width']
+    if 'Stretch' in cols:
+        kwargs[stretch_key] = df['Stretch']
 
-    ax.bar(
+    draw(
         df['Place'],
         df['Size'],
         zorder=2,
-        bottom=df['BarBottom'],
-        **draw_kwargs,
+        **kwargs,
     )
 
     if 'BarAnnotation' in cols:
@@ -255,19 +276,19 @@ def bar(
             ]
 
         annotations['Size'] /= 2
-        annotations['Size'] += annotations['BarBottom']
+        annotations['Size'] += annotations['BarStart']
 
         for i, row in annotations.iterrows():
             ax.annotate(
                 row['BarAnnotation'],
-                (row['Place'], row['Size']),
+                (row[annotation_x_key], row[annotation_y_key]),
                 ha='center',
                 va='center',
                 zorder=3,
                 fontsize=font.size['annotation'],
             )
 
-    if 'TickLabel' in df.columns:
+    if 'TickLabel' in cols:
         tick_labels_df = df.copy()
 
         if 'AddTick' in tick_labels_df.columns:
@@ -277,7 +298,7 @@ def bar(
 
         tick_labels_df['Tick'] = tick_labels_df.groupby('TickLabel')['Place'].transform('mean')
 
-        hnelib.plt.axes.set_x_text(
+        set_text(
             ax,
             tick_labels_df,
             tick_col='Tick',
@@ -288,7 +309,7 @@ def bar(
     margin = max(.5, 1.5 * group_pad)
 
     if len(df):
-        ax.set_xlim(min(df['Place']) - margin, max(df['Place']) + margin)
+        set_lim(min(df['Place']) - margin, max(df['Place']) + margin,)
 
     if separate_groups:
         for group in sorted(df['Group'].unique()):
@@ -297,7 +318,7 @@ def bar(
 
             place = group * group_size - group_pad / 2
 
-            ax.axvline(
+            axline(
                 place,
                 color=colors['-'],
                 lw=.5,
