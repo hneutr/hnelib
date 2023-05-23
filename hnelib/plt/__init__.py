@@ -111,6 +111,7 @@ def bar(
     # bar
     size_col,
     stretch_col=None,
+    place_col=None,
     bar_col=None,
     bar_color_col=None,
     bar_edge_color_col=None,
@@ -162,7 +163,6 @@ def bar(
         axline = ax.axhline
         set_lim = ax.set_ylim
         set_text = hnelib.plt.axes.set_y_text
-        which = 'y'
         bar_start_key = 'left'
         stretch_key = 'height'
         annotation_x_key = 'Size'
@@ -172,7 +172,6 @@ def bar(
         axline = ax.axvline
         set_lim = ax.set_xlim
         set_text = hnelib.plt.axes.set_x_text
-        which = 'x'
         bar_start_key = 'bottom'
         stretch_key = 'width'
         annotation_x_key = 'Place'
@@ -181,6 +180,7 @@ def bar(
     df = hnelib.pd.util.rename_df(df, {
         'Size': size_col,
         'Stretch': stretch_col,
+        'Place': place_col,
         'Bar': bar_col,
         'BarColor': bar_color_col,
         'BarEdgeColor': bar_edge_color_col,
@@ -219,7 +219,9 @@ def bar(
     df['Group'] = df['Group'].apply(groups.index)
 
     group_size = group_pad + df['Stack'].nunique()
-    df['Place'] = df['Group'] * group_size + group_pad + df['Stack']
+
+    if 'Place' not in cols:
+        df['Place'] = df['Group'] * group_size + group_pad + df['Stack']
 
     bar_starts = []
     for (group_order, stack_order), bars in df.groupby(['Group', 'Stack']):
