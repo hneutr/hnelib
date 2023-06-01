@@ -39,9 +39,6 @@ def format_df(
         '\\midrule': '\\midrule\n\\hline',
         '\\bottomrule': '\\bottomrule\n\\hline',
     },
-    # toprule=True,
-    # bottomrule=True,
-    # midrule=True,
 ):
     """
     adds some lines that I like to tables
