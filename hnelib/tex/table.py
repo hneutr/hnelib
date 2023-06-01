@@ -35,9 +35,9 @@ def format_df(
     sanitize=True,
     column_format=None,
     rules={
-        'top': True,
-        'mid': True,
-        'bottom': True,
+        '\\toprule': '\\toprule\n\\hline',
+        '\\midrule': '\\midrule\n\\hline',
+        '\\bottomrule': '\\bottomrule\n\\hline',
     },
     # toprule=True,
     # bottomrule=True,
@@ -59,13 +59,8 @@ def format_df(
         hrules=True,
     )
 
-    for rule, include in rules.items():
-        pattern = f"\\{rule}rule"
-        replacement = f"{pattern}\n\\hline" if include else ""
+    for pattern, replacement in rules.items():
         content = content.replace(pattern, replacement)
-        # content = content.replace(f"\\{rule}rule", f"{rule}\n\\hline")
-    # for rule in ['\\toprule', '\\midrule', '\\bottomrule']:
-    #     content = content.replace(rule, f"{rule}\n\\hline")
 
     return content
 
@@ -74,7 +69,11 @@ def fancy_table(df, column_alignments=None, sanitize=True):
         df,
         sanitize=sanitize,
         column_format="@{}" + "".join(column_alignments or []) + "@{}",
-        rules={'top': True, 'bottom': True, 'mid': False},
+        rules={
+            '\\toprule': '\\toprule\n\\hline',
+            '\\midrule': '\\hline',
+            '\\bottomrule': '\\bottomrule\n\\hline',
+        },
     )
 
     content = "\\renewcommand{\\arraystretch}{1.1}\n" + content
