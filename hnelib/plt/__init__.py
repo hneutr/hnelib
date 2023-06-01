@@ -17,6 +17,8 @@ import pandas as pd
 
 import hnelib.pd.util
 
+import matplotlib.patches as patches
+
 from hnelib.plt.constants import *
 import hnelib.plt.color
 import hnelib.plt.axes
