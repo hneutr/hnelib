@@ -328,3 +328,251 @@ def bar(
             )
 
     return df
+
+def rect_bar(
+    ax,
+    df,
+    # bar
+    size_col,
+    stretch_col=None,
+    position_col=None,
+    bar_col=None,
+    color_col=None,
+    edge_color_col=None,
+    hatch_col=None,
+    annotation_col=None,
+    annotate_col=None,
+    fade_facecolor=True,
+    # stack
+    stack_col=None,
+    # group
+    group_col=None,
+    group_pad=.5,
+    separate_groups=True,
+    # tick
+    tick_label_col=None,
+    tick_color_col=None,
+    add_tick_col=None,
+    # etc
+    horizontal=False,
+    **kwargs,
+):
+    """
+    - bars:
+    - stacks
+    - groups
+    
+    |  D E
+    | BD EG
+    |ABC EFH
+     -------
+      1   2
+
+    bars: A, B, C, D, E, F, G, H
+
+    groups:
+    - 1: A, B, C, D 
+    - 2: E, F, G, G
+    
+    stacks:
+    - A
+    - B
+    - C, D
+    - E
+    - F, G
+    - H
+    """
+    if horizontal:
+        draw = ax.barh
+        axline = ax.axhline
+        set_lim = ax.set_ylim
+        set_text = hnelib.plt.axes.set_y_text
+        # bar_start_key = 'left'
+        annotation_x_key = 'Size'
+        annotation_y_key = 'Position'
+        width_col, height_col = 'Size', 'Stretch'
+    else:
+        draw = ax.bar
+        axline = ax.axvline
+        set_lim = ax.set_xlim
+        set_text = hnelib.plt.axes.set_x_text
+        # bar_start_key = 'bottom'
+        annotation_x_key = 'Position'
+        annotation_y_key = 'Size'
+        width_col, height_col = 'Stretch', 'Size'
+
+    df = hnelib.pd.util.rename_df(df, {
+        'Size': size_col,
+        'Stretch': stretch_col,
+        'Position': position_col,
+        'Bar': bar_col,
+        'Color': color_col,
+        'EdgeColor': edge_color_col,
+        'Hatch': hatch_col,
+        'Annotation': annotation_col,
+        'Annotate': annotate_col,
+        # stack args
+        'Stack': stack_col,
+        # group args
+        'Group': group_col,
+        # label args
+        'TickLabel': tick_label_col,
+        'TickColor': tick_color_col,
+        'AddTick': add_tick_col,
+    })
+
+    cols = df.columns
+    group_pad = group_pad if 'Group' in cols else 0
+
+    if 'Bar' not in cols:
+        df['Bar'] = [i for i in range(len(df))]
+
+    bars = sorted(df['Bar'].unique())
+    df['Bar'] = df['Bar'].apply(bars.index)
+
+    if 'Stack' not in cols:
+        df['Stack'] = df['Bar']
+
+    stacks = sorted(df['Stack'].unique())
+    df['Stack'] = df['Stack'].apply(stacks.index)
+
+    if 'Group' not in cols:
+        df['Group'] = 0
+
+    groups = sorted(df['Group'].unique())
+    df['Group'] = df['Group'].apply(groups.index)
+
+    group_size = group_pad + df['Stack'].nunique()
+
+    if 'Position' not in cols:
+        df['Position'] = df['Group'] * group_size + group_pad + df['Stack']
+
+    starts = []
+    for (group_order, stack_order), bars in df.groupby(['Group', 'Stack']):
+        start = 0
+        for i, row in bars.sort_values(by='Bar').iterrows():
+            bar_starts.append({
+                'Group': group_order,
+                'Stack': stack_order,
+                'Bar': row['Bar'],
+                'Start': start,
+            })
+
+            start += row['Size']
+
+    df = df.merge(
+        pd.DataFrame(starts),
+        on=[
+            'Bar',
+            'Stack',
+            'Group',
+        ]
+    )
+
+    # kwargs[bar_start_key] = df['Start']
+
+    if 'Color' in cols:
+        df['FaceColor'] = df['Color']
+
+        if fade_bar_facecolor:
+            df['FaceColor'] = df['FaceColor'].apply(hnelib.plt.color.set_alpha)
+
+        kwargs['edgecolor'] = df['EdgeColor'] if 'EdgeColor' in cols else df['Color']
+        kwargs['color'] = df['FaceColor']
+
+    if 'Hatch' in cols:
+        kwargs['hatch'] = df['Hatch']
+
+    if 'Stretch' not in cols:
+        df['Stretch'] = 0.8
+
+    if horizontal:
+        df['X'] = df['Start']
+        df['Y'] = df['Position']
+        df['Y'] -= df[height_col] / 2
+    else:
+        df['X'] = df['Position']
+        df['X'] -= df[width_col] / 2
+        df['Y'] = df['Start']
+
+    for (group, stack, bar), rows in df.groupby(['Group', 'Stack', 'Bar']):
+        bar = rows.iloc[0]
+
+        rect = patches.Rectangle(
+            (bar['X'], bar['Y']),
+            bar[width_col],
+            bar[height_col],
+            **kwargs,
+            clip=False,
+            # linewidth=1,
+            # edgecolor='r',
+            # facecolor='none'
+        )
+    # ax.add_patch(rect)
+
+    # draw(
+    #     df['Position'],
+    #     df['Size'],
+    #     zorder=2,
+    #     **kwargs,
+    # )
+
+    if 'Annotation' in cols:
+        annotations = df.copy()
+
+        if 'Annotate' in cols:
+            annotations = annotations[
+                annotations['Annotate']
+            ]
+
+        annotations['Size'] /= 2
+        annotations['Size'] += annotations['Start']
+
+        for i, row in annotations.iterrows():
+            ax.annotate(
+                row['Annotation'],
+                (row[annotation_x_key], row[annotation_y_key]),
+                ha='center',
+                va='center',
+                zorder=3,
+                fontsize=font.size['annotation'],
+            )
+
+    if 'TickLabel' in cols:
+        tick_labels_df = df.copy()
+
+        if 'AddTick' in tick_labels_df.columns:
+            tick_labels_df = tick_labels_df[
+                tick_labels_df['AddTick']
+            ]
+
+        tick_labels_df['Tick'] = tick_labels_df.groupby('TickLabel')['Position'].transform('mean')
+
+        set_text(
+            ax,
+            tick_labels_df,
+            tick_col='Tick',
+            tick_label_col='TickLabel',
+            tick_color_col='TickColor',
+        )
+
+    margin = max(.5, 1.5 * group_pad)
+
+    if len(df):
+        set_lim(min(df['Position']) - margin, max(df['Position']) + margin,)
+
+    if separate_groups:
+        for group in sorted(df['Group'].unique()):
+            if not group:
+                continue
+
+            place = group * group_size - group_pad / 2
+
+            axline(
+                place,
+                color=colors['-'],
+                lw=.5,
+                zorder=0,
+            )
+
+    return df
