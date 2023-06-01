@@ -58,5 +58,5 @@ def fancy_table(df, column_alignments=None, sanitize=True):
         column_format="@{}" + "".join(column_alignments or []) + "@{}",
     )
 
-    content = "\\renewcommand{\\arraystretch}{1.1}" + content
+    content = "\\renewcommand{\\arraystretch}{1.1}\n" + content
     return content
