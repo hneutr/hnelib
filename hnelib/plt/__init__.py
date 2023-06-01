@@ -480,7 +480,8 @@ def rect_bar(
             df['FaceColor'] = df['FaceColor'].apply(hnelib.plt.color.set_alpha)
 
         kwargs['edgecolor'] = df['EdgeColor'] if 'EdgeColor' in cols else df['Color']
-        kwargs['color'] = df['FaceColor']
+        # kwargs['color'] = df['FaceColor']
+        kwargs['facecolor'] = df['FaceColor']
 
     if 'Hatch' in cols:
         kwargs['hatch'] = df['Hatch']
