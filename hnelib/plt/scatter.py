@@ -110,7 +110,7 @@ def connected(
     color_col=None,
     facecolor_col=None,
     s_col=None,
-    fade_facecolors=True,
+    fade_facecolor=True,
     s=S,
     sort_cols=[],
     groupby_cols=[],
@@ -182,45 +182,3 @@ def connected(
         df['Y'],
         **scatter_kwargs,
     )
-
-#
-# def plot_disconnected_scatter(ax, df, x_column, y_column, color, s=4, lw=1.5):
-#     df = df.copy()
-#     df = df.sort_values(by=x_column)
-#     faded_color = hnelib.plt.color.set_alpha(color, .75)
-#
-#     big_s = s * 2
-#     small_s = s - 3
-#
-#     ax.plot(
-#         df[x_column],
-#         df[y_column],
-#         color=color,
-#         lw=1,
-#         zorder=1,
-#     )
-#
-#     ax.scatter(
-#         df[x_column],
-#         df[y_column],
-#         color='white',
-#         zorder=2,
-#         s=big_s,
-#     )
-#
-#     ax.scatter(
-#         df[x_column],
-#         df[y_column],
-#         color=color,
-#         zorder=2,
-#         s=s,
-#     )
-#
-#     ax.scatter(
-#         df[x_column],
-#         df[y_column],
-#         color='w',
-#         zorder=2,
-#         marker='.',
-#         s=small_s,
-#     )
