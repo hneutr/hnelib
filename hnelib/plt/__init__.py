@@ -331,219 +331,219 @@ def bar(
 
     return df
 
-def rect_bar(
-    ax,
-    df,
-    # bar
-    size_col,
-    stretch_col=None,
-    position_col=None,
-    bar_col=None,
-    color_col=None,
-    edge_color_col=None,
-    hatch_col=None,
-    annotation_col=None,
-    annotate_col=None,
-    fade_facecolor=True,
-    # stack
-    stack_col=None,
-    # group
-    group_col=None,
-    group_pad=.5,
-    separate_groups=True,
-    # tick
-    tick_label_col=None,
-    tick_color_col=None,
-    add_tick_col=None,
-    # etc
-    horizontal=False,
-    linewidth=2,
-    **kwargs,
-):
-    """
-    - bars:
-    - stacks
-    - groups
+# def rect_bar(
+#     ax,
+#     df,
+#     # bar
+#     size_col,
+#     stretch_col=None,
+#     position_col=None,
+#     bar_col=None,
+#     color_col=None,
+#     edge_color_col=None,
+#     hatch_col=None,
+#     annotation_col=None,
+#     annotate_col=None,
+#     fade_facecolor=True,
+#     # stack
+#     stack_col=None,
+#     # group
+#     group_col=None,
+#     group_pad=.5,
+#     separate_groups=True,
+#     # tick
+#     tick_label_col=None,
+#     tick_color_col=None,
+#     add_tick_col=None,
+#     # etc
+#     horizontal=False,
+#     linewidth=2,
+#     **kwargs,
+# ):
+#     """
+#     - bars:
+#     - stacks
+#     - groups
     
-    |  D E
-    | BD EG
-    |ABC EFH
-     -------
-      1   2
+#     |  D E
+#     | BD EG
+#     |ABC EFH
+#      -------
+#       1   2
 
-    bars: A, B, C, D, E, F, G, H
+#     bars: A, B, C, D, E, F, G, H
 
-    groups:
-    - 1: A, B, C, D 
-    - 2: E, F, G, G
+#     groups:
+#     - 1: A, B, C, D 
+#     - 2: E, F, G, G
     
-    stacks:
-    - A
-    - B
-    - C, D
-    - E
-    - F, G
-    - H
-    """
-    x_col, y_col = 'Position', 'Start'
-    width_col, height_col = 'Stretch', 'Size'
-    axline = ax.axvline
-    set_lim = ax.set_xlim
-    set_text = hnelib.plt.axes.set_x_text
+#     stacks:
+#     - A
+#     - B
+#     - C, D
+#     - E
+#     - F, G
+#     - H
+#     """
+#     x_col, y_col = 'Position', 'Start'
+#     width_col, height_col = 'Stretch', 'Size'
+#     axline = ax.axvline
+#     set_lim = ax.set_xlim
+#     set_text = hnelib.plt.axes.set_x_text
 
-    if horizontal:
-        axline = ax.axhline
-        set_lim = ax.set_ylim
-        set_text = hnelib.plt.axes.set_y_text
-        x_col, y_col = y_col, x_col
-        width_col, height_col = height_col, width_col
+#     if horizontal:
+#         axline = ax.axhline
+#         set_lim = ax.set_ylim
+#         set_text = hnelib.plt.axes.set_y_text
+#         x_col, y_col = y_col, x_col
+#         width_col, height_col = height_col, width_col
 
-    df = hnelib.pd.util.rename_df(df, {
-        'Size': size_col,
-        'Stretch': stretch_col,
-        'Position': position_col,
-        'Bar': bar_col,
-        'Color': color_col,
-        'EdgeColor': edge_color_col,
-        'Hatch': hatch_col,
-        'Annotation': annotation_col,
-        'Annotate': annotate_col,
-        # stack args
-        'Stack': stack_col,
-        # group args
-        'Group': group_col,
-        # label args
-        'TickLabel': tick_label_col,
-        'TickColor': tick_color_col,
-        'AddTick': add_tick_col,
-    })
+#     df = hnelib.pd.util.rename_df(df, {
+#         'Size': size_col,
+#         'Stretch': stretch_col,
+#         'Position': position_col,
+#         'Bar': bar_col,
+#         'Color': color_col,
+#         'EdgeColor': edge_color_col,
+#         'Hatch': hatch_col,
+#         'Annotation': annotation_col,
+#         'Annotate': annotate_col,
+#         # stack args
+#         'Stack': stack_col,
+#         # group args
+#         'Group': group_col,
+#         # label args
+#         'TickLabel': tick_label_col,
+#         'TickColor': tick_color_col,
+#         'AddTick': add_tick_col,
+#     })
 
-    cols = df.columns
-    group_pad = group_pad if 'Group' in cols else 0
+#     cols = df.columns
+#     group_pad = group_pad if 'Group' in cols else 0
 
-    if 'Bar' not in cols:
-        df['Bar'] = [i for i in range(len(df))]
+#     if 'Bar' not in cols:
+#         df['Bar'] = [i for i in range(len(df))]
 
-    bars = sorted(df['Bar'].unique())
-    df['Bar'] = df['Bar'].apply(bars.index)
+#     bars = sorted(df['Bar'].unique())
+#     df['Bar'] = df['Bar'].apply(bars.index)
 
-    if 'Stack' not in cols:
-        df['Stack'] = df['Bar']
+#     if 'Stack' not in cols:
+#         df['Stack'] = df['Bar']
 
-    stacks = sorted(df['Stack'].unique())
-    df['Stack'] = df['Stack'].apply(stacks.index)
+#     stacks = sorted(df['Stack'].unique())
+#     df['Stack'] = df['Stack'].apply(stacks.index)
 
-    if 'Group' not in cols:
-        df['Group'] = 0
+#     if 'Group' not in cols:
+#         df['Group'] = 0
 
-    groups = sorted(df['Group'].unique())
-    df['Group'] = df['Group'].apply(groups.index)
+#     groups = sorted(df['Group'].unique())
+#     df['Group'] = df['Group'].apply(groups.index)
 
-    group_size = group_pad + df['Stack'].nunique()
+#     group_size = group_pad + df['Stack'].nunique()
 
-    if 'Position' not in cols:
-        df['Position'] = df['Group'] * group_size + group_pad + df['Stack']
+#     if 'Position' not in cols:
+#         df['Position'] = df['Group'] * group_size + group_pad + df['Stack']
 
-    df['Start'] = df.groupby(['Group', 'Stack'])['Size'].transform('cumsum')
-    df['Start'] -= df['Size']
+#     df['Start'] = df.groupby(['Group', 'Stack'])['Size'].transform('cumsum')
+#     df['Start'] -= df['Size']
 
-    if 'Color' in cols:
-        df['FaceColor'] = df['Color']
+#     if 'Color' in cols:
+#         df['FaceColor'] = df['Color']
 
-        if fade_facecolor:
-            df['FaceColor'] = df['FaceColor'].apply(hnelib.plt.color.set_alpha)
+#         if fade_facecolor:
+#             df['FaceColor'] = df['FaceColor'].apply(hnelib.plt.color.set_alpha)
 
-    if 'Stretch' not in cols:
-        df['Stretch'] = 0.8
+#     if 'Stretch' not in cols:
+#         df['Stretch'] = 0.8
 
-    df['X'] = df[x_col]
-    df['Y'] = df[y_col]
+#     df['X'] = df[x_col]
+#     df['Y'] = df[y_col]
 
-    if horizontal:
-        df['Y'] -= df[height_col] / 2
-    else:
-        df['X'] -= df[width_col] / 2
+#     if horizontal:
+#         df['Y'] -= df[height_col] / 2
+#     else:
+#         df['X'] -= df[width_col] / 2
 
-    df['XMid'] = df['X'] + df[width_col] / 2
-    df['YMid'] = df['Y'] + df[height_col] / 2
+#     df['XMid'] = df['X'] + df[width_col] / 2
+#     df['YMid'] = df['Y'] + df[height_col] / 2
 
-    for (group, stack, bar), rows in df.groupby(['Group', 'Stack', 'Bar']):
-        bar = rows.iloc[0]
-        bar_kwargs = {
-            **kwargs,
-            'linewidth': linewidth,
-        }
+#     for (group, stack, bar), rows in df.groupby(['Group', 'Stack', 'Bar']):
+#         bar = rows.iloc[0]
+#         bar_kwargs = {
+#             **kwargs,
+#             'linewidth': linewidth,
+#         }
 
-        if 'Hatch' in cols:
-            bar_kwargs['hatch'] = bar['Hatch']
+#         if 'Hatch' in cols:
+#             bar_kwargs['hatch'] = bar['Hatch']
 
-        if 'Color' in cols:
-            bar_kwargs['edgecolor'] = bar['EdgeColor'] if 'EdgeColor' in cols else bar['Color']
-            bar_kwargs['facecolor'] = bar['FaceColor']
+#         if 'Color' in cols:
+#             bar_kwargs['edgecolor'] = bar['EdgeColor'] if 'EdgeColor' in cols else bar['Color']
+#             bar_kwargs['facecolor'] = bar['FaceColor']
 
-        patch = patches.Rectangle(
-            (bar['X'], bar['Y']),
-            bar[width_col],
-            bar[height_col],
-            **bar_kwargs,
-        )
+#         patch = patches.Rectangle(
+#             (bar['X'], bar['Y']),
+#             bar[width_col],
+#             bar[height_col],
+#             **bar_kwargs,
+#         )
 
-        ax.add_patch(patch)
-        patch.set_clip_path(patch)
+#         ax.add_patch(patch)
+#         patch.set_clip_path(patch)
 
-    if 'Annotation' in cols:
-        annotations = df.copy()
+#     if 'Annotation' in cols:
+#         annotations = df.copy()
 
-        if 'Annotate' in cols:
-            annotations = annotations[
-                annotations['Annotate']
-            ]
+#         if 'Annotate' in cols:
+#             annotations = annotations[
+#                 annotations['Annotate']
+#             ]
 
-        for i, row in annotations.iterrows():
-            ax.annotate(
-                row['Annotation'],
-                (row['XMid'], row['YMid']),
-                ha='center',
-                va='center',
-                zorder=3,
-                fontsize=font.size['annotation'],
-            )
+#         for i, row in annotations.iterrows():
+#             ax.annotate(
+#                 row['Annotation'],
+#                 (row['XMid'], row['YMid']),
+#                 ha='center',
+#                 va='center',
+#                 zorder=3,
+#                 fontsize=font.size['annotation'],
+#             )
 
-    if 'TickLabel' in cols:
-        tick_labels_df = df.copy()
+#     if 'TickLabel' in cols:
+#         tick_labels_df = df.copy()
 
-        if 'AddTick' in tick_labels_df.columns:
-            tick_labels_df = tick_labels_df[
-                tick_labels_df['AddTick']
-            ]
+#         if 'AddTick' in tick_labels_df.columns:
+#             tick_labels_df = tick_labels_df[
+#                 tick_labels_df['AddTick']
+#             ]
 
-        tick_labels_df['Tick'] = tick_labels_df.groupby('TickLabel')['Position'].transform('mean')
+#         tick_labels_df['Tick'] = tick_labels_df.groupby('TickLabel')['Position'].transform('mean')
 
-        set_text(
-            ax,
-            tick_labels_df,
-            tick_col='Tick',
-            tick_label_col='TickLabel',
-            tick_color_col='TickColor',
-        )
+#         set_text(
+#             ax,
+#             tick_labels_df,
+#             tick_col='Tick',
+#             tick_label_col='TickLabel',
+#             tick_color_col='TickColor',
+#         )
 
-    margin = max(.5, 1.5 * group_pad)
+#     margin = max(.5, 1.5 * group_pad)
 
-    if len(df):
-        set_lim(min(df['Position']) - margin, max(df['Position']) + margin,)
+#     if len(df):
+#         set_lim(min(df['Position']) - margin, max(df['Position']) + margin,)
 
-    if separate_groups:
-        for group in sorted(df['Group'].unique()):
-            if not group:
-                continue
+#     if separate_groups:
+#         for group in sorted(df['Group'].unique()):
+#             if not group:
+#                 continue
 
-            place = group * group_size - group_pad / 2
+#             place = group * group_size - group_pad / 2
 
-            axline(
-                place,
-                color=colors['-'],
-                lw=.5,
-                zorder=0,
-            )
+#             axline(
+#                 place,
+#                 color=colors['-'],
+#                 lw=.5,
+#                 zorder=0,
+#             )
 
-    return df
+#     return df
