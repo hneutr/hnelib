@@ -474,7 +474,7 @@ def rect_bar(
     if 'Color' in cols:
         df['FaceColor'] = df['Color']
 
-        if fade_bar_facecolor:
+        if fade_facecolor:
             df['FaceColor'] = df['FaceColor'].apply(hnelib.plt.color.set_alpha)
 
         kwargs['edgecolor'] = df['EdgeColor'] if 'EdgeColor' in cols else df['Color']
