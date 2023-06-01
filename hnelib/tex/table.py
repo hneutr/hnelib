@@ -50,3 +50,13 @@ def format_df(df, column_alignments=[], sanitize=True, column_format=None):
         content = content.replace(rule, f"{rule}\n\\hline")
 
     return content
+
+def fancy_table(df):
+    content = format_df(
+        df,
+        sanitize=sanitize,
+        column_format="@{}" + "".join(column_alignments or []) + "@{}",
+    )
+
+    content = "\\renewcommand{\\arraystretch}{1.1}" + content
+    return content
