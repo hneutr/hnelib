@@ -451,7 +451,7 @@ def rect_bar(
     for (group_order, stack_order), bars in df.groupby(['Group', 'Stack']):
         start = 0
         for i, row in bars.sort_values(by='Bar').iterrows():
-            bar_starts.append({
+            starts.append({
                 'Group': group_order,
                 'Stack': stack_order,
                 'Bar': row['Bar'],
