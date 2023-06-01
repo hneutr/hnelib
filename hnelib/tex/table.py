@@ -29,7 +29,20 @@ def sanitize_df(df):
     return df
 
 
-def format_df(df, column_alignments=[], sanitize=True, column_format=None):
+def format_df(
+    df,
+    column_alignments=[],
+    sanitize=True,
+    column_format=None,
+    rules={
+        'top': True,
+        'mid': True,
+        'bottom': True,
+    },
+    # toprule=True,
+    # bottomrule=True,
+    # midrule=True,
+):
     """
     adds some lines that I like to tables
 
@@ -46,8 +59,13 @@ def format_df(df, column_alignments=[], sanitize=True, column_format=None):
         hrules=True,
     )
 
-    for rule in ['\\toprule', '\midrule', '\\bottomrule']:
-        content = content.replace(rule, f"{rule}\n\\hline")
+    for rule, include in rules.items():
+        pattern = f"\\{rule}rule"
+        replacement = f"{pattern}\n\\hline" if include else ""
+        content = content.replace(pattern, replacement)
+        # content = content.replace(f"\\{rule}rule", f"{rule}\n\\hline")
+    # for rule in ['\\toprule', '\\midrule', '\\bottomrule']:
+    #     content = content.replace(rule, f"{rule}\n\\hline")
 
     return content
 
@@ -56,6 +74,7 @@ def fancy_table(df, column_alignments=None, sanitize=True):
         df,
         sanitize=sanitize,
         column_format="@{}" + "".join(column_alignments or []) + "@{}",
+        rules={'top': True, 'bottom': True, 'mid': False},
     )
 
     content = "\\renewcommand{\\arraystretch}{1.1}\n" + content
