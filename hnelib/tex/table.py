@@ -70,7 +70,6 @@ def fancy_table(df, column_alignments=None, sanitize=True):
         sanitize=sanitize,
         column_format="@{}" + "".join(column_alignments or []) + "@{}",
         rules={
-            '\\toprule': '\\toprule\n\\hline',
             '\\midrule': '\\hline',
             '\\bottomrule': '\\bottomrule\n\\hline',
         },
