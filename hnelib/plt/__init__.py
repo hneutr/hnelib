@@ -357,6 +357,7 @@ def rect_bar(
     add_tick_col=None,
     # etc
     horizontal=False,
+    linewidth=2,
     **kwargs,
 ):
     """
@@ -384,24 +385,18 @@ def rect_bar(
     - F, G
     - H
     """
+    x_col, y_col = 'Position', 'Start'
+    width_col, height_col = 'Stretch', 'Size'
+    axline = ax.axvline
+    set_lim = ax.set_xlim
+    set_text = hnelib.plt.axes.set_x_text
+
     if horizontal:
-        draw = ax.barh
         axline = ax.axhline
         set_lim = ax.set_ylim
         set_text = hnelib.plt.axes.set_y_text
-        # bar_start_key = 'left'
-        annotation_x_key = 'Size'
-        annotation_y_key = 'Position'
-        width_col, height_col = 'Size', 'Stretch'
-    else:
-        draw = ax.bar
-        axline = ax.axvline
-        set_lim = ax.set_xlim
-        set_text = hnelib.plt.axes.set_x_text
-        # bar_start_key = 'bottom'
-        annotation_x_key = 'Position'
-        annotation_y_key = 'Size'
-        width_col, height_col = 'Stretch', 'Size'
+        x_col, y_col = y_col, x_col
+        width_col, height_col = height_col, width_col
 
     df = hnelib.pd.util.rename_df(df, {
         'Size': size_col,
@@ -449,29 +444,8 @@ def rect_bar(
     if 'Position' not in cols:
         df['Position'] = df['Group'] * group_size + group_pad + df['Stack']
 
-    starts = []
-    for (group_order, stack_order), bars in df.groupby(['Group', 'Stack']):
-        start = 0
-        for i, row in bars.sort_values(by='Bar').iterrows():
-            starts.append({
-                'Group': group_order,
-                'Stack': stack_order,
-                'Bar': row['Bar'],
-                'Start': start,
-            })
-
-            start += row['Size']
-
-    df = df.merge(
-        pd.DataFrame(starts),
-        on=[
-            'Bar',
-            'Stack',
-            'Group',
-        ]
-    )
-
-    # kwargs[bar_start_key] = df['Start']
+    df['Start'] = df.groupby(['Group', 'Stack'])['Size'].transform('cumsum')
+    df['Start'] -= df['Size']
 
     if 'Color' in cols:
         df['FaceColor'] = df['Color']
@@ -479,46 +453,43 @@ def rect_bar(
         if fade_facecolor:
             df['FaceColor'] = df['FaceColor'].apply(hnelib.plt.color.set_alpha)
 
-        kwargs['edgecolor'] = df['EdgeColor'] if 'EdgeColor' in cols else df['Color']
-        # kwargs['color'] = df['FaceColor']
-        kwargs['facecolor'] = df['FaceColor']
-
-    if 'Hatch' in cols:
-        kwargs['hatch'] = df['Hatch']
-
     if 'Stretch' not in cols:
         df['Stretch'] = 0.8
 
+    df['X'] = df[x_col]
+    df['Y'] = df[y_col]
+
     if horizontal:
-        df['X'] = df['Start']
-        df['Y'] = df['Position']
         df['Y'] -= df[height_col] / 2
     else:
-        df['X'] = df['Position']
         df['X'] -= df[width_col] / 2
-        df['Y'] = df['Start']
+
+    df['XMid'] = df['X'] + df[width_col] / 2
+    df['YMid'] = df['Y'] + df[height_col] / 2
 
     for (group, stack, bar), rows in df.groupby(['Group', 'Stack', 'Bar']):
         bar = rows.iloc[0]
+        bar_kwargs = {
+            **kwargs,
+            'linewidth': linewidth,
+        }
 
-        rect = patches.Rectangle(
+        if 'Hatch' in cols:
+            bar_kwargs['hatch'] = bar['Hatch']
+
+        if 'Color' in cols:
+            bar_kwargs['edgecolor'] = bar['EdgeColor'] if 'EdgeColor' in cols else bar['Color']
+            bar_kwargs['facecolor'] = bar['FaceColor']
+
+        patch = patches.Rectangle(
             (bar['X'], bar['Y']),
             bar[width_col],
             bar[height_col],
-            **kwargs,
-            clip=False,
-            # linewidth=1,
-            # edgecolor='r',
-            # facecolor='none'
+            **bar_kwargs,
         )
-    # ax.add_patch(rect)
 
-    # draw(
-    #     df['Position'],
-    #     df['Size'],
-    #     zorder=2,
-    #     **kwargs,
-    # )
+        ax.add_patch(patch)
+        patch.set_clip_path(patch)
 
     if 'Annotation' in cols:
         annotations = df.copy()
@@ -528,13 +499,10 @@ def rect_bar(
                 annotations['Annotate']
             ]
 
-        annotations['Size'] /= 2
-        annotations['Size'] += annotations['Start']
-
         for i, row in annotations.iterrows():
             ax.annotate(
                 row['Annotation'],
-                (row[annotation_x_key], row[annotation_y_key]),
+                (row['XMid'], row['YMid']),
                 ha='center',
                 va='center',
                 zorder=3,
