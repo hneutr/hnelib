@@ -29,7 +29,7 @@ def sanitize_df(df):
     return df
 
 
-def format_df(df, column_alignments=[], sanitize=True):
+def format_df(df, column_alignments=[], sanitize=True, column_format=None):
     """
     adds some lines that I like to tables
 
@@ -41,10 +41,8 @@ def format_df(df, column_alignments=[], sanitize=True):
     if sanitize:
         df = sanitize_df(df)
 
-    header = "|" + "|".join(column_alignments) + "|"
-
     content = df.style.hide(axis='index').to_latex(
-        column_format=header,
+        column_format=column_format or "|" + "|".join(column_alignments) + "|",
         hrules=True,
     )
 
