@@ -51,7 +51,7 @@ def format_df(df, column_alignments=[], sanitize=True, column_format=None):
 
     return content
 
-def fancy_table(df):
+def fancy_table(df, column_alignments=None, sanitize=True):
     content = format_df(
         df,
         sanitize=sanitize,
