@@ -618,7 +618,7 @@ class Runner(object):
     #
     ################################################################################
     def run_all(self, **kwargs):
-        self.run_items(self.items, **kwargs)
+        self.run_items(self.items, all_expansions=True, **kwargs)
 
     def run_collection(self, query, **kwargs):
         self.run_items(self.get_items_in_collection(query), **kwargs)
