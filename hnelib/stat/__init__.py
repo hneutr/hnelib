@@ -12,6 +12,10 @@ def correlation(xs, ys):
     pearson, pearson_p = scipy.stats.pearsonr(xs, ys)
     return pearson, pearson_p
 
+def spearman_correlation(xs, ys):
+    pearson, pearson_p = scipy.stats.spearmanr(xs, ys)
+    return pearson, pearson_p
+
 
 def proportions_confidence_interval(events, observations, alpha=.05, method='normal', as_percent=False):
     lower_bound, upper_bound = statsmodels.stats.proportion.proportion_confint(
