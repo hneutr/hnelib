@@ -8,9 +8,14 @@ def fraction(numerator, denominator, convert_hyphens=True):
     string = string.replace(' ', '\ ')
 
     if convert_hyphens:
-        string = string.replace("-", u"\u2010")
+        string = subtract(string)
 
     return string
+
+
+def subtract(string):
+    return string.replace("-", u"\u2010")
+
 
 def annotate(
     ax,
