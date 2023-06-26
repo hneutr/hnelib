@@ -44,7 +44,7 @@ def label_subplots(
         ax.text(
             x_pad,
             y_pad,
-            label.lower(),
+            label.upper(),
             transform=ax.transAxes,
             fontname=fontname,
             fontsize=fontsize,
