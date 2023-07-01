@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 import scipy.stats
+import statsmodels.stats.api as sm
+
 
 
 import hnelib.util
@@ -68,11 +70,15 @@ def confidence(
 
     annotations = []
     for cols, rows in df.groupby(groupby_cols):
-        lower, upper = scipy.stats.norm.interval(
-            alpha=alpha,
-            loc=rows[col].mean(),
-            scale=scipy.stats.sem(rows[col])
-        )
+        lower, upper = sm.DescrStatsW(rows[col]).tconfint_mean()
+
+        # res = bootstrap(rows[col], np.std, confidence_level=alpha)
+
+        # lower, upper = scipy.stats.norm.interval(
+        #     alpha=alpha,
+        #     loc=rows[col].mean(),
+        #     scale=scipy.stats.sem(rows[col])
+        # )
 
         annotations.append({
             **hnelib.pd.util.get_groupby_dict(rows, groupby_cols),
