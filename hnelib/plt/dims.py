@@ -32,7 +32,6 @@ def __mms_to_inch__(mms):
 def __get_dims__():
     dims = {k: __mms_to_inch__(v) for k, v in DIMS_IN_MMS.items()}
 
-    # sizes = list(D.keys())
     for k_w, k_h in itertools.product(dims, dims):
         dims[(k_w, k_h)] = (dims[k_w], dims[k_h])
 

@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+import scipy.stats
+
 
 import hnelib.util
 import hnelib.pd.util
@@ -50,6 +52,35 @@ def error(
     df[to_col] = df[std_col] / df[sqrt_n_col]
 
     return hnelib.pd.util.remove_fake_cols(df)
+
+def confidence(
+    df,
+    col=COL,
+    lower_col='LowerConfidence',
+    upper_col='UpperConfidence',
+    groupby_cols=None,
+    alpha=.95,
+):
+    """
+    given a dataframe, adds a column with the confidence.
+    """
+    df, groupby_cols = hnelib.pd.util.get_groupby_cols(df, groupby_cols)
+
+    annotations = []
+    for cols, rows in df.groupby(groupby_cols):
+        lower, upper = scipy.stats.norm.interval(
+            alpha=alpha,
+            loc=rows[col].mean(),
+            scale=scipy.stats.sem(rows[cols])
+        )
+
+        annotations.append({
+            **hnelib.pd.util.get_groupby_dict(rows),
+            lower_col: lower,
+            upper_col: upper,
+        })
+
+    return _add_annotations(df, annotations, join_cols=groupby_cols)
 
 
 def norm(
