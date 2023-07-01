@@ -75,7 +75,7 @@ def confidence(
         )
 
         annotations.append({
-            **hnelib.pd.util.get_groupby_dict(rows),
+            **hnelib.pd.util.get_groupby_dict(rows, groupby_cols),
             lower_col: lower,
             upper_col: upper,
         })
@@ -114,7 +114,7 @@ def percentiles(
     annotations = []
     for _, rows in df.groupby(groupby_cols):
         annotations.append({
-            **hnelib.pd.util.get_groupby_dict(rows),
+            **hnelib.pd.util.get_groupby_dict(rows, groupby_cols),
             **{p_col: np.percentile(rows[col], p) for p, p_col in value_to_col.items()},
         })
 
@@ -186,7 +186,7 @@ def proportions_confidence_interval(
         )
 
         annotations.append({
-            **hnelib.pd.util.get_groupby_dict(rows),
+            **hnelib.pd.util.get_groupby_dict(rows, groupby_cols),
             upper_col: upper_conf,
             lower_col: lower_conf,
         })
