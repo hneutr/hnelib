@@ -71,7 +71,7 @@ def confidence(
         lower, upper = scipy.stats.norm.interval(
             alpha=alpha,
             loc=rows[col].mean(),
-            scale=scipy.stats.sem(rows[cols])
+            scale=scipy.stats.sem(rows[col])
         )
 
         annotations.append({
