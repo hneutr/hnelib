@@ -21,9 +21,9 @@ def aggregate(
     - {agg_cols}: in the above example, ["GiniCoefficient"]
     - {col_val_labels}: defaults to {col.val}: {col.val}
 
-    for each key ({agg_val}) and value ({agg_val_label}) in {col_val_labels}:
-        for each {val_col} in {agg_cols}:
-            add a new col to df: `{agg_val_label}{val_col}`
+    for key {col_val}, {col_val_label} in {col_val_labels}:
+        for each {agg_col_val} in {agg_cols}:
+            add a new col to df: `{col_val_label}{agg_col_val}`
     """
     df = df.copy()
 

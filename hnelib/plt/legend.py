@@ -12,8 +12,11 @@ LINEWIDTH = .5
 def set(
     ax,
     handles,
+    frameon=False,
     **kwargs,
 ):
+    kwargs['frameon'] = kwargs.get('frameon', frameon)
+
     legend = ax.legend(
         handles=[handle.artist for handle in handles],
         **kwargs,
