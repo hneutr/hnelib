@@ -1,3 +1,5 @@
+from matplotlib import transforms
+
 from hnelib.plt.arrow import arrows
 from hnelib.plt.font import size as fontsize
 
@@ -77,3 +79,50 @@ def annotate(
             arrowprops=arrowprops,
             **kwargs,
         )
+
+def multiline(
+    ax,
+    lines,
+    x,
+    y,
+    va='bottom',
+    ha='left',
+):
+
+def multicolor(
+    ax,
+    elements,
+    x,
+    y,
+    va='bottom',
+    ha='left',
+    **kwargs,
+):
+    for i, element in enumerate(elements):
+        text, color = element if isinstance(element, tuple) else (element, 'black')
+
+        if i != len(elements):
+            text += " "
+
+        text = ax.text(
+            x,
+            y,
+            text,
+            color=color,
+            transform=ax.transAxes,
+            va=va,
+            ha=ha,
+            **kwargs,
+        )
+
+        transforms.offset_copy(
+            text._transform,
+            x=text.get_window_extent().width,
+            units='dots',
+        )
+
+    for s,c in zip(ls,lc):
+        text = plt.text(x,y,s+" ",color=c, transform=t, **kw)
+        text.draw(fig.canvas.get_renderer())
+        ex = text.get_window_extent()
+        t = transforms.offset_copy(text._transform, x=ex.width, units='dots')
