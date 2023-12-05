@@ -52,12 +52,10 @@ def format_df(
     if sanitize:
         df = sanitize_df(df)
 
-    df.style.hide(axis='index')
-
     if table_styles:
         df.style.set_table_styles(table_styles)
 
-    content = df.to_latex(
+    content = df.style.hide(axis='index').to_latex(
         column_format=column_format or "|" + "|".join(column_alignments) + "|",
         hrules=True,
     )
