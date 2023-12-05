@@ -53,6 +53,7 @@ def format_df(
         df = sanitize_df(df)
 
     if table_styles:
+        print("hi")
         df.style.set_table_styles(table_styles)
 
     content = df.style.hide(axis='index').to_latex(
