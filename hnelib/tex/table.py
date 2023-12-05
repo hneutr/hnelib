@@ -53,8 +53,10 @@ def format_df(
         df = sanitize_df(df)
 
     if table_styles:
-        print("hi")
-        df.style.set_table_styles(table_styles)
+        df = df.style.set_table_styles(table_styles)
+
+    # if hide_columns:
+    #     df.style.hide_
 
     content = df.style.hide(axis='index').to_latex(
         column_format=column_format or "|" + "|".join(column_alignments) + "|",
