@@ -35,6 +35,7 @@ def format_df(
     sanitize=True,
     column_format=None,
     table_styles=None,
+    hide_columns=False,
     rules={
         '\\toprule': '\\toprule\n\\hline',
         '\\midrule': '\\midrule\n\\hline',
@@ -52,13 +53,13 @@ def format_df(
     if sanitize:
         df = sanitize_df(df)
 
-    if table_styles:
-        df = df.style.set_table_styles(table_styles)
+    # if table_styles:
+    #     df.style.set_table_styles(table_styles)
 
     # if hide_columns:
     #     df.style.hide_
 
-    content = df.style.hide(axis='index').to_latex(
+    content = df.style.hide(axis='index').set_table_styles(table_styles or []).to_latex(
         column_format=column_format or "|" + "|".join(column_alignments) + "|",
         hrules=True,
     )
