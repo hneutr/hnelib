@@ -53,13 +53,12 @@ def format_df(
     if sanitize:
         df = sanitize_df(df)
 
-    # if table_styles:
-    #     df.style.set_table_styles(table_styles)
+    df.style.hide(axis='index').set_table_styles(table_styles or [])
 
-    # if hide_columns:
-    #     df.style.hide_
+    if hide_columns:
+        df.style.hide(axis='columns')
 
-    content = df.style.hide(axis='index').set_table_styles(table_styles or []).to_latex(
+    content = df.style.to_latex(
         column_format=column_format or "|" + "|".join(column_alignments) + "|",
         hrules=True,
     )
@@ -69,12 +68,13 @@ def format_df(
 
     return content
 
-def fancy_table(df, column_alignments=None, sanitize=True, table_styles=None):
+def fancy_table(df, column_alignments=None, sanitize=True, table_styles=None, hide_columns=False):
     content = format_df(
         df,
         sanitize=sanitize,
         column_format="@{}" + "".join(column_alignments or []) + "@{}",
         table_styles=table_styles,
+        hide_columns=hide_columns,
         rules={
             '\\midrule': '\\hline',
             '\\bottomrule': '\\bottomrule\n\\hline',
