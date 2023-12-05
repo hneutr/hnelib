@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 from matplotlib import transforms
 
 from hnelib.plt.arrow import arrows
@@ -34,12 +35,14 @@ def annotate(
     arrowprops=arrows['->'],
     fontsize=fontsize['annotation'],
     background_kwargs={},
+    annotate_kwargs={},
 ):
     kwargs = {
         'ha': ha or 'center',
         'va': va or 'center',
         'fontsize': fontsize,
         'annotation_clip': annotation_clip,
+        **annotate_kwargs,
     }
 
     if ha == 'left':
@@ -92,6 +95,7 @@ def multiline(
 
 def multicolor(
     ax,
+    fig,
     elements,
     x,
     y,
@@ -99,6 +103,14 @@ def multicolor(
     ha='left',
     **kwargs,
 ):
+    t = plt.gca().transData
+
+    text = plt.text(x,y,s+" ",color=c, transform=t, **kw)
+    text.draw(fig.canvas.get_renderer())
+    ex = text.get_window_extent()
+    t = transforms.offset_copy(text._transform, x=ex.width, units='dots')
+
+
     for i, element in enumerate(elements):
         text, color = element if isinstance(element, tuple) else (element, 'black')
 

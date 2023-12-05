@@ -65,46 +65,68 @@ def plot_connected_scatter(ax, df, x_column, y_column, color, s=12, lw=.65):
         lw=lw,
     )
 
-def plot_disconnected_scatter(ax, df, x_column, y_column, color, s=4, lw=1.5):
-    df = df.copy()
-    df = df.sort_values(by=x_column)
-    faded_color = hnelib.plt.color.set_alpha(color, .75)
+def fancy_scatter(
+    ax,
+    df,
+    x_col,
+    y_col,
+    color_col=None,
+    edge_color_col=None,
+    fade_face_color=True,
+    # s=10,
+    **kwargs,
+    # marker='O',
+    # s=4,
+    # lw=1.5,
+):
+    print("hi")
+    df = hnelib.pd.util.rename_df(df, {
+        'X': x_col,
+        'Y': y_col,
+        'Color': color_col,
+        'EdgeColor': edge_color_col,
+    })
 
-    big_s = s * 2
-    small_s = s - 3
+    cols = df.columns
 
-    ax.plot(
-        df[x_column],
-        df[y_column],
-        color=color,
-        lw=1,
-        zorder=1,
-    )
+    if 'Color' in cols:
+        df['FaceColor'] = df['Color']
+
+        if fade_face_color:
+            df['FaceColor'] = df['FaceColor'].apply(hnelib.plt.color.set_alpha)
+            print("hi")
+
+        kwargs['edgecolor'] = df['EdgeColor'] if 'EdgeColor' in cols else df['Color']
+        kwargs['color'] = df['FaceColor']
+
+    df = df.sort_values(by=['X'])
+
+    # big_s = s * 2
+    # small_s = s - 3
+
+    # ax.scatter(
+    #     df['X'],
+    #     df['Y'],
+    #     color='white',
+    #     zorder=2,
+    #     s=big_s,
+    # )
 
     ax.scatter(
-        df[x_column],
-        df[y_column],
-        color='white',
-        zorder=2,
-        s=big_s,
+        df['X'],
+        df['Y'],
+        # s=s,
+        **kwargs,
     )
 
-    ax.scatter(
-        df[x_column],
-        df[y_column],
-        color=color,
-        zorder=2,
-        s=s,
-    )
-
-    ax.scatter(
-        df[x_column],
-        df[y_column],
-        color='w',
-        zorder=2,
-        marker='.',
-        s=small_s,
-    )
+    # ax.scatter(
+    #     df[x_column],
+    #     df[y_column],
+    #     color='w',
+    #     zorder=2,
+    #     marker='.',
+    #     s=small_s,
+    # )
 
 
 def bar(

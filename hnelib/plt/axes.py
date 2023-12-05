@@ -16,10 +16,11 @@ def set_fn(ax, fn_suffix, axis='x'):
     return _ax_fn(ax, fn_suffix=fn_suffix, axis=axis, fn_prefix='set')
 
 
-def hide(ax):
-    ax.set_frame_on(False)
-    ax.set_xticks([])
-    ax.set_yticks([])
+def hide(*axes):
+    for ax in axes:
+        ax.set_frame_on(False)
+        ax.set_xticks([])
+        ax.set_yticks([])
 
 
 def label_subplots(

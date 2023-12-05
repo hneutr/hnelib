@@ -155,7 +155,7 @@ def connected(
 
     for _, rows in df.groupby(groupby_cols):
         if sort_cols:
-            rows = rows.sort(by=sort_cols)
+            rows = rows.sort_values(by=sort_cols)
 
         row_line_kwargs = line_kwargs.copy()
 
